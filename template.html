@@ -208,6 +208,9 @@
 		var materialS;
 		var vertexDisplacement;
 
+		//planete
+		var sun;
+
 		// object
 		var sphere;
 
@@ -380,11 +383,21 @@
 			fragmentShader: document.getElementById('fragmentShader').textContent
 		});
 
+		// sun
+		var geometry = new THREE.SphereGeometry(20,32,32);
+		var materialSun = new THREE.MeshPhongMaterial();
+		materialSun.map=THREE.ImageUtils.loadTexture('Bunny1.png');
+		var earthmesh = new THREE.Mesh(geometry,materialSun);
+
+		scene.add(earthmesh);
+
+
 		// sphere
 		let geo = new THREE.SphereBufferGeometry(50, 50, 50);
 		sphere = new THREE.Mesh(geo, materialC);
 		sphere.position.z = -100;
 		scene.add(sphere);
+
 
 
 		animate();
