@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+	<title>WebGL 2020 - L3 - FST - UNILIM</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<!-- <script type="text/javascript" src="http://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=JagMHoP5s5rM8MDRnmB7BaPFViGHpw_EUTtHQUW8TIlqPYQneP84Ew-wuwEAmk0I9K9Zce7q3oH7Zt4KNc56y6-YJ2QyL1xsuU5H7Vjlj-FOzxRsiTT8MYRbTtuKBrwVk6xQcTNaxQE7guHy_0zkxsEW6L7RXLdPX83llPHeKgc" charset="UTF-8"></script><link rel="stylesheet" crossorigin="anonymous" href="http://ff.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL3d3dy51bmlsaW0uZnIvcGFnZXNfcGVyc28vZ3VpbGxhdW1lLmdpbGV0L0Vuc2VpZ25lbWVudC9JbmZvR3JhcGhpcXVlL1dlYkdML1RQL3RlbXBsYXRlLmh0bWw"/></head>
+-->
+
+<body>
+	<script src="three.js"></script>
+
+
+	<script id="fonctions">
+		// renvoie un nombre entre [0 ; 1[
+		function ZTOTZ(x){
+			return x % 1;
+		}
+	</script>
+
+
+
+<!--
+//////////////////////////////////////////////////////
+///////////////////  SHADER PART  ////////////////////
+//////////////////////////////////////////////////////
+-->
+
+
+	<script type="x-shader/x-vertex" id="vertexShader">
+		uniform float delta; // peut-être
+		uniform float multiplicateur; //hauteur du déplacement
+		uniform float time; // le temps
+		uniform float scale; // si l'objet a été upscale
+		varying vec3 vUv; // = position
+		varying vec2 bande; //la bande
+
+		// renvoie le rapport entre la distance entre le x du point moins le min(ou max) et la distance entre le min(ou le max) de la bande et le centre de la bande
+		float distanceCentreX(vec2 bande, float centreBande, vec3 vertex){
+			float distanceAuCentre;
+			if (vertex.x<centreBande){
+				distanceAuCentre = abs(bande.x-vertex.x) / abs(bande.x-centreBande);
+			}else{
+				distanceAuCentre = abs(bande.y-vertex.x) / abs(bande.y-centreBande);
+			}
+			return distanceAuCentre;
+		}
+
+		float distanceCentreY(vec2 bande, float centreBande, vec3 vertex){
+			float distanceAuCentre;
+			if (vertex.y<centreBande){
+				distanceAuCentre = abs(bande.x-vertex.y) / abs(bande.x-centreBande);
+			}else{
+				distanceAuCentre = abs(bande.y-vertex.y) / abs(bande.y-centreBande);
+			}
+			return distanceAuCentre;
+		}
+
+		float distanceCentreZ(vec2 bande, float centreBande, vec3 vertex){
+			float distanceAuCentre;
+			if (vertex.z<centreBande){
+				distanceAuCentre = abs(bande.x-vertex.z) / abs(bande.x-centreBande);
+			}else{
+				distanceAuCentre = abs(bande.y-vertex.z) / abs(bande.y-centreBande);
+			}
+			return distanceAuCentre;
+		}
+		///////////////////////////////////////////////
+		///////////////////////////////////////////////
+
+		void main(){
+			vUv = position;
+
+			vec3 p = position;
+
+			float amplitude = 7.0; // amplitude de la bande
+			float min = (-10.0 * amplitude * sin(time/1900.0)) / scale; // minimum de la bande  ->////////
+			float max = min + (10.0/ scale) ; // maximum de la bande ////////<-
+			bande = vec2(min, max);
+
+			float centreBande = (max+min)/2.0;
+
+			//vague sur l'axe x
+			if ((vUv.x > bande.x)&&(vUv.x < bande.y)){
+				p = p + normal * multiplicateur * (distanceCentreX(bande, centreBande, p)/100.0);
+			}
+
+			//vague sur l'axe y
+			if ((vUv.y > bande.x)&&(vUv.y < bande.y)){
+				p = p + normal * multiplicateur * (distanceCentreY(bande, centreBande, p)/100.0);
+			}
+
+			// bande bleu sur l'axe z
+			if ((vUv.z > bande.x)&&(vUv.z < bande.y)){
+				p = p + normal * multiplicateur * (distanceCentreZ(bande, centreBande, p)/100.0);
+			}
+
+			vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+			gl_Position = projectionMatrix * modelViewPosition;
+		}
+	</script>
+
+
+	<script type="x-shader/x-fragment" id="fragmentShader">
+		uniform float delta; // éventuellement
+		uniform float time; // le temps
+		uniform vec3 color; // la couleur
+		uniform float scale; //si l'objet a été scale
+		varying vec3 vUv; // position du pixel dans l'espace
+		varying vec2 bande; // la bande
+
+		void main(){
+			float r = color.r;
+			float g = color.g;
+			float b = color.b;
+
+			// bande rouge sur l'axe x
+			if ((vUv.x > bande.x)&&(vUv.x < bande.y)){
+				r = 1.0;
+			}
+
+			// bande verte sur l'axe y
+			if ((vUv.y > bande.x)&&(vUv.y < bande.y)){
+				g = 1.0;
+			}
+
+			// bande bleu sur l'axe z
+			if ((vUv.z > bande.x)&&(vUv.z < bande.y)){
+				b = 1.0;
+			}
+
+			vec3 rgb = vec3(r, g, b);
+			gl_FragColor = vec4(rgb, 1.0);
+		}
+	</script>
+
+<!--
+	///////////////////////////////////////////////
+	////// Avec texture sur le lapin
+	///////////////////////////////////////////////
+-->
+	<script type="x-shader/x-vertex" id="vertexShader2">
+		uniform float multiplicateur; //hauteur du déplacement
+		uniform float time; // le temps
+		uniform float scale; // si l'objet a été upscale
+		varying vec3 vUv; // = position
+		varying vec2 bande; //la bande
+		varying vec2 textureVec; // coordonnées de texture à un point donné
+
+		///////////////////////////////////////////////
+		///////////////////////////////////////////////
+
+		void main(){
+			vUv = position;
+			textureVec = uv;
+			vec3 p = position;
+
+			// gonflement du lapin
+			p = p + normal * 0.003 * abs(sin(time/1000.0)*0.5);
+
+			vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+			gl_Position = projectionMatrix * modelViewPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShader2">
+		uniform float time; // le temps
+		uniform vec3 color; // la couleur (si on veut)
+		uniform float scale; // si l'objet est scale
+		varying vec3 vUv; // position du pixel dans l'espace
+		uniform sampler2D texture1; // texture de l'objet
+		varying vec2 textureVec; // coordonnées de texture à un point donné
+
+		void main(){
+			// chargement de la texture
+			vec4 text = texture2D(texture1,textureVec);
+
+			// application de la texture
+			gl_FragColor = text;
+		}
+	</script>
+
+
+<!--
+//////////////////////////////////////////////////////
+//////////////// SHADER PART OVER ////////////////////
+//////////////////////////////////////////////////////
+-->
+
+
+	<script type="module">
+		//import * as THREE from 'https://unpkg.com/three@0.121.1/build/three.module.js';
+		import { OrbitControls } from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
+		import { OBJLoader } from 'https://unpkg.com/three@0.121.1/examples/jsm/loaders/OBJLoader.js';
+
+
+		// constant
+		const width = window.innerWidth;
+		const height = window.innerHeight;
+
+
+		// global object
+		var renderer, scene, camera, controls, axesHelper;
+
+		//shaderMaterial
+		var materialS;
+		var vertexDisplacement;
+
+		// object
+		var sphere;
+
+		// light
+		var pointLight;
+		var pointLightPurple;
+		var ambientLight;
+
+
+		// events
+		window.addEventListener('keydown', onKeyDown, false);
+		window.addEventListener('resize', onWindowResize, false);
+
+
+		// renderer
+		renderer = new THREE.WebGLRenderer({ antialias: true });
+		renderer.setPixelRatio(window.devicePixelRatio);
+		renderer.setSize(width, height);
+		document.body.appendChild(renderer.domElement);
+		renderer.setClearColor(0x090909, 1.0);//0x00ffff
+		renderer.clear();
+
+		// camera
+		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
+		camera.position.set(10,10,300);
+		camera.rotation.set(0,0,0);
+		camera.up = new THREE.Vector3( 0 ,1, 0 );
+		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
+
+		// orbit controller
+		controls = new OrbitControls(camera, renderer.domElement);
+
+		// scene
+		scene = new THREE.Scene();
+		axesHelper = new THREE.AxesHelper(50);
+		//scene.add(axesHelper);
+
+		// lights
+		pointLight = new THREE.PointLight();
+		pointLight.position.set( 80, 150, 250 );
+		scene.add(pointLight);
+
+		pointLightPurple = new THREE.PointLight(0xff00ff, 1.0, 0);
+		pointLightPurple.position.set( -80, -150, 250 );
+		scene.add(pointLightPurple);
+
+		ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+		scene.add(ambientLight);
+
+		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/PipelineWebGL_2020.html#/9/2
+		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/TP/TP3.html#/3
+		// http://tpwebgl/tp3/template.html
+
+		var uniformsLapin = {
+			delta:{value: 0},
+			time:{value: 0},
+			scale:{
+				type:'f',
+				value:600
+			},
+			color:{
+				type:'c',
+				value: new THREE.Color(0.3, 0.3, 0.3)
+			},
+			multiplicateur: {
+				type:'f',
+				value: 1.3
+			}
+		}
+
+		var uniformsCube = {
+			delta:{value: 0},
+			time:{value: 0},
+			scale:{
+				type:'f',
+				value:1
+			},
+			color:{
+				type:'c',
+				value: new THREE.Color(0.3, 0.3, 0.3)
+			},
+			multiplicateur: {
+				type:'f',
+				value: 600.0
+			}
+		}
+
+		var uniformsLapinTexture = {
+			time:{value: 0},
+			scale:{
+				type:'f',
+				value:600
+			},
+			texture1: {
+				type: "t",
+				value: new THREE.TextureLoader().load( "./Bunny1.png" )
+			},
+			color:{
+				type:'c',
+				value: new THREE.Color(0.3, 0.3, 0.3)
+			},
+			multiplicateur: {
+				type:'f',
+				value: 1.3
+			}
+		}
+
+
+		///////////////////////////
+		///////////////////////////
+
+
+		materialS = new THREE.ShaderMaterial({
+			uniforms: uniformsLapin,
+			vertexShader: document.getElementById('vertexShader').textContent,
+			fragmentShader: document.getElementById('fragmentShader').textContent
+		});
+
+		let loader = new OBJLoader();
+
+		// lapin de gauche
+		loader.load("Bunny.obj", function(bunny){
+
+			bunny.traverse( function( child ) {
+				if ( child.isMesh ) {
+					child.geometry.computeVertexNormals();
+					child.material = materialS;
+				}
+			});
+
+			bunny.scale.set(600,600,600);
+			bunny.position.x = -100;
+			bunny.needsUpdate = true;
+			//bunny.add(new THREE.AxesHelper(0.1));
+			scene.add(bunny);
+		});
+
+		///////////////////////////
+		///////////////////////////
+
+		let materialD = new THREE.ShaderMaterial({
+			uniforms: uniformsLapinTexture,
+			vertexShader: document.getElementById('vertexShader2').textContent,
+			fragmentShader: document.getElementById('fragmentShader2').textContent
+		});
+
+		// lapin de droite avec la texture
+		loader.load("Bunny.obj", function(bunny){
+
+			bunny.traverse( function( child ) {
+				if ( child.isMesh ) {
+					child.geometry.computeVertexNormals();
+					child.material = materialD;
+				}
+			});
+
+			bunny.scale.set(600,600,600);
+			bunny.position.x = 100;
+			bunny.needsUpdate = true;
+			//bunny.add(new THREE.AxesHelper(0.1));
+			scene.add(bunny);
+		});
+
+		///////////////////////////
+		///////////////////////////
+
+		let materialC = new THREE.ShaderMaterial({
+			uniforms: uniformsCube,
+			vertexShader: document.getElementById('vertexShader').textContent,
+			fragmentShader: document.getElementById('fragmentShader').textContent
+		});
+
+		// sphere
+		let geo = new THREE.SphereBufferGeometry(50, 50, 50);
+		sphere = new THREE.Mesh(geo, materialC);
+		sphere.position.z = -100;
+		scene.add(sphere);
+
+
+		animate();
+
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+
+
+		function render() {
+			renderer.render(scene, camera);
+		}
+
+		function animate(t) {
+			// envoie du temps dans le shader
+			uniformsLapin.time.value = t;
+			uniformsLapinTexture.time.value = t;
+			uniformsCube.time.value = t;
+
+			// RENDER
+			render();
+			requestAnimationFrame(animate);
+			controls.update();
+		}
+
+
+
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+
+
+		function onWindowResize() {
+			camera.aspect = width /height;
+			camera.updateProjectionMatrix();
+
+			renderer.setSize(width, height);
+		}
+
+
+		function onKeyDown(event) {
+			switch (event.key) {
+				case '1':
+				print("Touche 1 !");
+				break;
+			}
+		}
+
+		function print(message) {
+			console.log(message);
+		}
+
+
+	</script>
+</body>
+
+</html>
