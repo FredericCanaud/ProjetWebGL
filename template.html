@@ -208,6 +208,12 @@
 		var materialS;
 		var vertexDisplacement;
 
+		//compteur vitesse selfRotation
+		var vitesseSelfRotationPlanete1 = 0;
+
+		//compteur vitesse rotation
+		var vitesseRotationPlanete1Sun =0;
+
 		//planete
 		var sun;
 
@@ -253,9 +259,6 @@
 		pointLight.position.set( 80, 150, 250 );
 		scene.add(pointLight);
 
-		pointLightPurple = new THREE.PointLight(0xff00ff, 1.0, 0);
-		pointLightPurple.position.set( -80, -150, 250 );
-		scene.add(pointLightPurple);
 
 		ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
 		scene.add(ambientLight);
@@ -331,22 +334,6 @@
 
 		let loader = new OBJLoader();
 
-		// lapin de gauche
-		loader.load("Bunny.obj", function(bunny){
-
-			bunny.traverse( function( child ) {
-				if ( child.isMesh ) {
-					child.geometry.computeVertexNormals();
-					child.material = materialS;
-				}
-			});
-
-			bunny.scale.set(600,600,600);
-			bunny.position.x = -100;
-			bunny.needsUpdate = true;
-			//bunny.add(new THREE.AxesHelper(0.1));
-			scene.add(bunny);
-		});
 
 		///////////////////////////
 		///////////////////////////
@@ -355,23 +342,6 @@
 			uniforms: uniformsLapinTexture,
 			vertexShader: document.getElementById('vertexShader2').textContent,
 			fragmentShader: document.getElementById('fragmentShader2').textContent
-		});
-
-		// lapin de droite avec la texture
-		loader.load("Bunny.obj", function(bunny){
-
-			bunny.traverse( function( child ) {
-				if ( child.isMesh ) {
-					child.geometry.computeVertexNormals();
-					child.material = materialD;
-				}
-			});
-
-			bunny.scale.set(600,600,600);
-			bunny.position.x = 100;
-			bunny.needsUpdate = true;
-			//bunny.add(new THREE.AxesHelper(0.1));
-			scene.add(bunny);
 		});
 
 		///////////////////////////
@@ -384,19 +354,22 @@
 		});
 
 		// sun
-		var geometry = new THREE.SphereGeometry(20,32,32);
+		var geometry = new THREE.SphereGeometry(80,32,32);
 		var materialSun = new THREE.MeshPhongMaterial();
-		materialSun.map=THREE.ImageUtils.loadTexture('Bunny1.png');
-		var earthmesh = new THREE.Mesh(geometry,materialSun);
+		materialSun.map=THREE.ImageUtils.loadTexture('soleil.jpg');
+		var sun = new THREE.Mesh(geometry,materialSun);
 
-		scene.add(earthmesh);
+		scene.add(sun);
 
+		//planete1
 
-		// sphere
-		let geo = new THREE.SphereBufferGeometry(50, 50, 50);
-		sphere = new THREE.Mesh(geo, materialC);
-		sphere.position.z = -100;
-		scene.add(sphere);
+		var geometry = new THREE.SphereGeometry(20,32,32);
+		var materialPlanete1 = new THREE.MeshPhongMaterial();
+		materialPlanete1.map=THREE.ImageUtils.loadTexture('mars.jpg');
+		var planete1 = new THREE.Mesh(geometry,materialPlanete1);
+		planete1.position.set(200,0,0);
+
+		scene.add(planete1);
 
 
 
@@ -409,9 +382,20 @@
 
 		function render() {
 			renderer.render(scene, camera);
+
+			//fait tourner le dodecahedron autour du centre du groupe horizontalement avec un diametre de 250
+			planete1.position.x = sun.position.x + Math.cos(vitesseRotationPlanete1Sun/500)* 250;
+			planete1.position.z = sun.position.z + Math.sin(vitesseRotationPlanete1Sun/500)* 250;
+			planete1.position.y = sun.position.y;
 		}
 
 		function animate(t) {
+			planete1.rotation.set(1,vitesseSelfRotationPlanete1/800,1);
+			vitesseSelfRotationPlanete1=vitesseSelfRotationPlanete1+10*1;
+
+			vitesseRotationPlanete1Sun = vitesseRotationPlanete1Sun+10;
+
+
 			// envoie du temps dans le shader
 			uniformsLapin.time.value = t;
 			uniformsLapinTexture.time.value = t;
