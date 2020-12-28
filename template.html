@@ -365,39 +365,50 @@
 
 		var geometry = new THREE.SphereGeometry(20,32,32);
 		var materialPlanete1 = new THREE.MeshPhongMaterial();
-		materialPlanete1.map=THREE.ImageUtils.loadTexture('mars.jpg');
+		materialPlanete1.map=THREE.ImageUtils.loadTexture('makemake.jpg');
 		var planete1 = new THREE.Mesh(geometry,materialPlanete1);
 		planete1.position.set(200,0,0);
 
 		scene.add(planete1);
 
 
-		//planete2
+		//effetSoleil
 
-		var planete2Material = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
-    var planete2Geometry = new THREE.SphereGeometry(8, 24, 24);
-    var planete2 = new THREE.Mesh(planete2Geometry, planete2Material);
+		var effetSoleilMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
+    var effetSoleilGeometry = new THREE.SphereGeometry(80, 24, 24);
+    var effetSoleil = new THREE.Mesh(effetSoleilGeometry, effetSoleilMaterial);
 
-    loader.load("sphere.obj", function(planete2){
+    loader.load("sphere.obj", function(effetSoleil){
 
-        sun.traverse( function( child ) {
+        effetSoleil.traverse( function( child ) {
             if ( child.isMesh ) {
                 child.geometry.computeVertexNormals();
                 child.material = materialD;
+								child.position.set(-200,0,0);
             }
         });
+        effetSoleil.scale.set(600,600,600);
+        effetSoleil.position.x = 400;
+        effetSoleil.needsUpdate = true;
 
-        planete2.scale.set(600,600,600);
-        planete2.position.x = 400;
-        planete2.needsUpdate = true;
-
-        scene.add(planete2);
+        scene.add(effetSoleil);
     });
 
 
 
-		scene.add(planete2);
+		scene.add(effetSoleil);
 
+
+
+		//planete2
+
+		var geometry = new THREE.SphereGeometry(20,32,32);
+		var materialPlanete2 = new THREE.MeshPhongMaterial();
+		materialPlanete2.map=THREE.ImageUtils.loadTexture('mars.jpg');
+		var planete2 = new THREE.Mesh(geometry,materialPlanete2);
+		planete2.position.set(-200,0,0);
+
+		scene.add(planete2);
 
 
 		animate();
@@ -414,6 +425,10 @@
 			planete1.position.x = sun.position.x + Math.cos(vitesseRotationPlanete1Sun/500)* 250;
 			planete1.position.z = sun.position.z + Math.sin(vitesseRotationPlanete1Sun/500)* 250;
 			planete1.position.y = sun.position.y;
+
+			planete2.position.x = sun.position.x - Math.cos(vitesseRotationPlanete1Sun/500)* 250;
+			planete2.position.z = sun.position.z - Math.sin(vitesseRotationPlanete1Sun/500)* 250;
+			planete2.position.y = sun.position.y;
 		}
 
 		function animate(t) {
