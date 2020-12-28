@@ -241,7 +241,7 @@
 
 		// camera
 		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
-		camera.position.set(10,10,500);
+		camera.position.set(10,-100,800);
 		camera.rotation.set(0,0,0);
 		camera.up = new THREE.Vector3( 0 ,1, 0 );
 		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
@@ -409,6 +409,39 @@
 		planete2.position.set(-200,0,0);
 
 		scene.add(planete2);
+
+
+		//deathStar
+
+		loader.load( "ds.obj", function (objet){
+			var material = new THREE.ShaderMaterial( {}  );
+
+			objet.material = material;
+			objet.traverse( function( child ) {
+				var texture = new THREE.TextureLoader().load( "ds.jpg"  );
+
+				if ( child.isMesh ) child.geometry.computeVertexNormals();
+				child.material.map=texture;
+
+			} );
+
+
+
+			objet.position.set(0,300,0);
+			objet.rotateX(500);
+			objet.rotateZ(600);
+
+			objet.scale.set(1,1,1);
+			scene.add(objet);
+		});
+
+
+		//effetDebut
+		const geometryEffetDebutt = new THREE.CylinderGeometry( 5, 5, 1, 32 );
+		const materialEffetDebutt = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		const effetDebutt = new THREE.Mesh( geometryEffetDebutt, materialEffetDebutt );
+		scene.add( effetDebutt );
+
 
 
 		animate();
