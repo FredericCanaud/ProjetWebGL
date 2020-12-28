@@ -202,7 +202,7 @@
 
 
 		// global object
-		var renderer, scene, camera, controls, axesHelper;
+		var renderer, scene, camera, controls, axesHelper,bgTexture, bgWidth, bgHeight;
 
 		//shaderMaterial
 		var materialS;
@@ -241,7 +241,7 @@
 
 		// camera
 		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
-		camera.position.set(10,10,300);
+		camera.position.set(10,10,500);
 		camera.rotation.set(0,0,0);
 		camera.up = new THREE.Vector3( 0 ,1, 0 );
 		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
@@ -309,7 +309,7 @@
 			},
 			texture1: {
 				type: "t",
-				value: new THREE.TextureLoader().load( "./Bunny1.png" )
+				value: new THREE.TextureLoader().load( "./soleil.jpg" )
 			},
 			color:{
 				type:'c',
@@ -370,6 +370,33 @@
 		planete1.position.set(200,0,0);
 
 		scene.add(planete1);
+
+
+		//planete2
+
+		var planete2Material = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
+    var planete2Geometry = new THREE.SphereGeometry(8, 24, 24);
+    var planete2 = new THREE.Mesh(planete2Geometry, planete2Material);
+
+    loader.load("sphere.obj", function(planete2){
+
+        sun.traverse( function( child ) {
+            if ( child.isMesh ) {
+                child.geometry.computeVertexNormals();
+                child.material = materialD;
+            }
+        });
+
+        planete2.scale.set(600,600,600);
+        planete2.position.x = 400;
+        planete2.needsUpdate = true;
+
+        scene.add(planete2);
+    });
+
+
+
+		scene.add(planete2);
 
 
 
