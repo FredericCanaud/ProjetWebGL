@@ -215,6 +215,9 @@
 		//compteur vitesse rotation
 		let vitesseRotationPlanete1Sun = 0;
 
+		//gui
+		var lumiereControl;
+
 		//planete
 		let sun;
 
@@ -225,6 +228,7 @@
 		let pointLight;
 		let pointLightPurple;
 		let dysonLight;
+		let sceneLight;
 
 
 		// events
@@ -256,9 +260,13 @@
 		//scene.add(axesHelper);
 
 		// lights
-		pointLight = new THREE.PointLight(0xfeefaf, 1, 500);
+		pointLight = new THREE.PointLight(0xfeefaf, 10, 500);
 		pointLight.position.set(0, 0, 0);
 		scene.add(pointLight);
+
+		sceneLight = new THREE.AmbientLight(0xffffff, 0);
+		sceneLight.position.set(10,-100,800);
+		scene.add(sceneLight);
 
 
 		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/PipelineWebGL_2020.html#/9/2
@@ -434,7 +442,6 @@
 		});
 
 
-		//anneau
 
 		//////////////////////////////////
 		/// GROUPE DE LA SPHERE DE DYSON
@@ -493,8 +500,27 @@
 			}
 		}
 
+		lumiereControl= new function() {
+
+			// donner l'intensité de la lumière rouge de base
+			this.intensiteSoleil = 2;
+			this.intensiteLumiereGeneral=1;
+		}
+
 		// création du GUI
 		let gui = new dat.GUI();
+
+		//ajoute une rubrique lumiere
+		var lumiere = gui.addFolder('lumiere');
+
+		//ajouter un controle de l'intensité de la lumière du soleil dans le gui
+		lumiere.add(lumiereControl,'intensiteSoleil',0,20).listen();
+
+		//ajouter un controle de l'intensité de la lumière général dans le gui
+		lumiere.add(lumiereControl,'intensiteLumiereGeneral',0,2).listen();
+
+		//avoir la rubrique ouverte par défaut
+		lumiere.open();
 
 		// option pour la camera
 		let gtor = gui.addFolder('Camera');
@@ -512,8 +538,10 @@
 		scene.add( effetDebutt );
 
 
+		//anneau
 		const geometryAnneau = new THREE.RingGeometry( 22, 30, 32 );
 		const materialAnneau = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
+		materialAnneau.map=THREE.ImageUtils.loadTexture('saturnring.png');
 		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
 		anneau.rotateX(360);
 		scene.add( anneau );
@@ -541,6 +569,12 @@
 			anneau.position.x = planete1.position.x;
 			anneau.position.y = planete1.position.y;
 			anneau.position.z = planete1.position.z;
+
+			//lumiere du soleil
+			pointLight.intensity=lumiereControl.intensiteSoleil;
+
+			//lumiere de la scene
+			sceneLight.intensity=lumiereControl.intensiteLumiereGeneral*0.5;
 
 
 			//anneau.scale.set(tailleEffetDepartSoleil,tailleEffetDepartSoleil,tailleEffetDepartSoleil) ;
