@@ -256,6 +256,7 @@
 
 		// scene
 		scene = new THREE.Scene();
+
 		axesHelper = new THREE.AxesHelper(50);
 		//scene.add(axesHelper);
 
@@ -538,21 +539,25 @@
 
 
 		//effetDebut
-		const geometryEffetDebutt = new THREE.CylinderGeometry( 5, 5, 1, 32 );
-		const materialEffetDebutt = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+		const geometryEffetDebutt = new THREE.RingGeometry( 28, 30, 32 );
+		const materialEffetDebutt = new THREE.MeshBasicMaterial( {color: 0xffffff} );
 		const effetDebutt = new THREE.Mesh( geometryEffetDebutt, materialEffetDebutt );
+		effetDebutt.rotateX(-51);
 		scene.add( effetDebutt );
 
 
 		//anneau
-		const geometryAnneau = new THREE.RingGeometry( 22, 30, 32 );
+		const geometryAnneau = new THREE.RingGeometry( 28, 30, 32 );
 		const materialAnneau = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
 		materialAnneau.map=THREE.ImageUtils.loadTexture('saturnring.png');
 		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
 		anneau.rotateX(360);
 		scene.add( anneau );
 
+		// ajouter background https://discourse.threejs.org/t/background-image-texture-is-not-working/15435
 
+		const loader2 = new THREE.TextureLoader();
+		scene.background = loader2.load( 'stars_milkyway.jpg' );
 		animate();
 
 	/////////////////////////////////////////////////
@@ -583,7 +588,7 @@
 			sceneLight.intensity=lumiereControl.intensiteLumiereGeneral*0.5;
 
 
-			//anneau.scale.set(tailleEffetDepartSoleil,tailleEffetDepartSoleil,tailleEffetDepartSoleil) ;
+			effetDebutt.scale.set(tailleEffetDepartSoleil,tailleEffetDepartSoleil,tailleEffetDepartSoleil) ;
 		}
 
 		function animate(t) {
@@ -592,7 +597,7 @@
 
 			vitesseRotationPlanete1Sun = vitesseRotationPlanete1Sun+10;
 
-			tailleEffetDepartSoleil = tailleEffetDepartSoleil+0.01;
+			tailleEffetDepartSoleil = tailleEffetDepartSoleil*1.02;
 
 			/////////////////////////////
 			/// GROUPE SPHERE DE DYSON
