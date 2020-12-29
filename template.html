@@ -420,7 +420,7 @@
 		//deathStar
 
 		loader.load( "ds.obj", function (objet){
-			var material = new THREE.ShaderMaterial( {}  );
+			let material = new THREE.ShaderMaterial( {}  );
 
 			objet.material = material;
 			objet.traverse( function( child ) {
@@ -449,27 +449,34 @@
 
 		// groupe qui contient la sphere
 		const groupeDyson = new THREE.Group();
-		groupeDyson.position.x = 600;
+		groupeDyson.position.x = 1200;
 
 		// création de l'étoile
-		let sphereDyson = new THREE.SphereBufferGeometry(30, 32, 32);
-		let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0xff0000});
+		let sphereDyson = new THREE.SphereBufferGeometry(40, 32, 32);
+		let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0x90f0ff, emissive: 0x90f0ff});
 		let dysonStar = new THREE.Mesh(sphereDyson, materialSphereDyson);
 
 		// lumière pour la sphère de Dyson
-		dysonLight = new THREE.PointLight(0xff0000, 1, 300);
+		dysonLight = new THREE.PointLight(0x90f0ff, 1, 300);
 		dysonStar.add(dysonLight);
 
 		groupeDyson.add(dysonStar);
 
 		// paramètre pour créer un anneau
-		let geometryRing = new THREE.CylinderBufferGeometry(50, 50, 10, 64, 10, true);
+		let geometryRing1 = new THREE.CylinderBufferGeometry(60, 60, 10, 64, 10, true);
+		let geometryRing2 = new THREE.CylinderBufferGeometry(70, 70, 10, 64, 10, true);
+		let geometryRing3 = new THREE.CylinderBufferGeometry(80, 80, 10, 64, 10, true);
 		let materialRing = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide});
 
 		// création des anneaux
-		let anneau1 = new THREE.Mesh(geometryRing, materialRing);
+		let anneau1 = new THREE.Mesh(geometryRing1, materialRing);
+		let anneau2 = new THREE.Mesh(geometryRing2, materialRing);
+		let anneau3 = new THREE.Mesh(geometryRing3, materialRing);
 
+		// ajout des anneaux
 		groupeDyson.add(anneau1);
+		groupeDyson.add(anneau2);
+		groupeDyson.add(anneau3);
 
 
 		// ajout du groupe à la scène
@@ -489,11 +496,10 @@
 		let options = {
 			camera :{
 				lookAtTheDysonSphere : function(){
-					//groupeDyson.add(camera);
-					camera.position.x = 610;
-					camera.position.y = -100;
-					camera.position.z = 800;
-					camera.rotation.set(600,0,0);
+					camera.position.x = groupeDyson.position.x;
+					camera.position.y = 100;
+					camera.position.z = 400;
+					camera.rotation.set(groupeDyson.position.x,0,0);
 					camera.lookAt(groupeDyson.position);
 					controls.target = groupeDyson.position;
 				}
@@ -511,7 +517,7 @@
 		let gui = new dat.GUI();
 
 		//ajoute une rubrique lumiere
-		var lumiere = gui.addFolder('lumiere');
+		let lumiere = gui.addFolder('lumiere');
 
 		//ajouter un controle de l'intensité de la lumière du soleil dans le gui
 		lumiere.add(lumiereControl,'intensiteSoleil',0,20).listen();
@@ -523,9 +529,9 @@
 		lumiere.open();
 
 		// option pour la camera
-		let gtor = gui.addFolder('Camera');
-		gtor.add(options.camera, 'lookAtTheDysonSphere').name("lookAtTheDysonSphere").listen();
-		gtor.open();
+		let optCam = gui.addFolder('Camera');
+		optCam.add(options.camera, 'lookAtTheDysonSphere').name("lookAtTheDysonSphere").listen();
+		optCam.open();
 
 
 		//=================================================
@@ -587,6 +593,15 @@
 			vitesseRotationPlanete1Sun = vitesseRotationPlanete1Sun+10;
 
 			tailleEffetDepartSoleil = tailleEffetDepartSoleil+0.01;
+
+			/////////////////////////////
+			/// GROUPE SPHERE DE DYSON
+			/////////////////////////////
+
+			// rotation des anneaux
+			anneau1.rotation.set(0, t/800, t/800);
+			anneau2.rotation.set(t/1000, 0, 0);
+			anneau3.rotation.set(0, 0, t/1200);
 
 
 			// envoie du temps dans le shader
