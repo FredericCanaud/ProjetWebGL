@@ -11,13 +11,11 @@
 
 <body>
 	<script src="three.js"></script>
+	<script src="threeCSG.js"></script>
 	<script src="dat.gui.min.js"></script>
 
 	<script id="fonctions">
-		// renvoie un nombre entre [0 ; 1[
-		function ZTOTZ(x){
-			return x % 1;
-		}
+		// écrire fonction ici
 	</script>
 
 
@@ -223,7 +221,6 @@
 		// light
 		let pointLight;
 		let pointLightPurple;
-		let ambientLight;
 		let dysonLight;
 
 
@@ -256,13 +253,10 @@
 		//scene.add(axesHelper);
 
 		// lights
-		pointLight = new THREE.PointLight();
-		pointLight.position.set( 80, 150, 250 );
+		pointLight = new THREE.PointLight(0xfeefaf, 1, 500);
+		pointLight.position.set(0, 0, 0);
 		scene.add(pointLight);
 
-
-		ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-		scene.add(ambientLight);
 
 		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/PipelineWebGL_2020.html#/9/2
 		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/TP/TP3.html#/3
@@ -448,7 +442,7 @@
 
 		// création de l'étoile
 		let sphereDyson = new THREE.SphereBufferGeometry(30, 32, 32);
-		let materialSphereDyson = new THREE.MeshLambertMaterial({color: 0xff0000});
+		let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0xff0000, emissive: 0xff0000});
 		let dysonStar = new THREE.Mesh(sphereDyson, materialSphereDyson);
 
 		// lumière pour la sphère de Dyson
@@ -459,11 +453,10 @@
 
 		// paramètre pour créer un anneau
 		let geometryRing = new THREE.CylinderBufferGeometry(50, 50, 10, 64, 10, true);
-		let materialRing = new THREE.MeshLambertMaterial({color: 0xffffff});
+		let materialRing = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide});
 
 		// création des anneaux
 		let anneau1 = new THREE.Mesh(geometryRing, materialRing);
-
 
 		groupeDyson.add(anneau1);
 
@@ -475,7 +468,37 @@
 		// FIN GROUPE DE LA SPHERE DE DYSON
 		////////////////////////////////////
 
+		//=====================================================================
 
+		////////////////////////////////////
+		/// GUI
+		////////////////////////////////////
+
+		// options of the gui
+		let options = {
+			camera :{
+				lookAtTheDysonSphere : function(){
+					//groupeDyson.add(camera);
+					camera.position.x = 610;
+					camera.position.y = -100;
+					camera.position.z = 800;
+					camera.rotation.set(600,0,0);
+					camera.lookAt(groupeDyson.position);
+					controls.target = groupeDyson.position;
+				}
+			}
+		}
+
+		// création du GUI
+		let gui = new dat.GUI();
+
+		// option pour la camera
+		let gtor = gui.addFolder('Camera');
+		gtor.add(options.camera, 'lookAtTheDysonSphere').name("lookAtTheDysonSphere").listen();
+		gtor.open();
+
+
+		//=================================================
 
 
 		//effetDebut
