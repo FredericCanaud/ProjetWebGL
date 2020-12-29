@@ -11,7 +11,7 @@
 
 <body>
 	<script src="three.js"></script>
-
+	<script src="dat.gui.min.js"></script>
 
 	<script id="fonctions">
 		// renvoie un nombre entre [0 ; 1[
@@ -202,28 +202,29 @@
 
 
 		// global object
-		var renderer, scene, camera, controls, axesHelper,bgTexture, bgWidth, bgHeight;
+		let renderer, scene, camera, controls, axesHelper, bgTexture, bgWidth, bgHeight;
 
 		//shaderMaterial
-		var materialS;
-		var vertexDisplacement;
+		let materialS;
+		let vertexDisplacement;
 
 		//compteur vitesse selfRotation
-		var vitesseSelfRotationPlanete1 = 0;
+		let vitesseSelfRotationPlanete1 = 0;
 
 		//compteur vitesse rotation
-		var vitesseRotationPlanete1Sun =0;
+		let vitesseRotationPlanete1Sun = 0;
 
 		//planete
-		var sun;
+		let sun;
 
 		// object
-		var sphere;
+		let sphere;
 
 		// light
-		var pointLight;
-		var pointLightPurple;
-		var ambientLight;
+		let pointLight;
+		let pointLightPurple;
+		let ambientLight;
+		let dysonLight;
 
 
 		// events
@@ -241,7 +242,7 @@
 
 		// camera
 		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
-		camera.position.set(10,-100,800);
+		camera.position.set(10, -100, 800);
 		camera.rotation.set(0,0,0);
 		camera.up = new THREE.Vector3( 0 ,1, 0 );
 		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
@@ -357,7 +358,7 @@
 		var geometry = new THREE.SphereGeometry(80,32,32);
 		var materialSun = new THREE.MeshPhongMaterial();
 		materialSun.map=THREE.ImageUtils.loadTexture('soleil.jpg');
-		var sun = new THREE.Mesh(geometry,materialSun);
+		sun = new THREE.Mesh(geometry, materialSun);
 
 		scene.add(sun);
 
@@ -434,6 +435,47 @@
 			objet.scale.set(1,1,1);
 			scene.add(objet);
 		});
+
+
+
+		//////////////////////////////////
+		/// GROUPE DE LA SPHERE DE DYSON
+		//////////////////////////////////
+
+		// groupe qui contient la sphere
+		const groupeDyson = new THREE.Group();
+		groupeDyson.position.x = 600;
+
+		// création de l'étoile
+		let sphereDyson = new THREE.SphereBufferGeometry(30, 32, 32);
+		let materialSphereDyson = new THREE.MeshLambertMaterial({color: 0xff0000});
+		let dysonStar = new THREE.Mesh(sphereDyson, materialSphereDyson);
+
+		// lumière pour la sphère de Dyson
+		dysonLight = new THREE.PointLight(0xff0000, 1, 300);
+		dysonStar.add(dysonLight);
+
+		groupeDyson.add(dysonStar);
+
+		// paramètre pour créer un anneau
+		let geometryRing = new THREE.CylinderBufferGeometry(50, 50, 10, 64, 10, true);
+		let materialRing = new THREE.MeshLambertMaterial({color: 0xffffff});
+
+		// création des anneaux
+		let anneau1 = new THREE.Mesh(geometryRing, materialRing);
+
+
+		groupeDyson.add(anneau1);
+
+
+		// ajout du groupe à la scène
+		scene.add(groupeDyson);
+
+		////////////////////////////////////
+		// FIN GROUPE DE LA SPHERE DE DYSON
+		////////////////////////////////////
+
+
 
 
 		//effetDebut
