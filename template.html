@@ -191,6 +191,10 @@
 		uniform float time; // le temps
 		varying vec3 vUv; // = position
 
+		float rand(vec2 co){
+			return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
+		}
+
 		///////////////////////////////////////////////
 		///////////////////////////////////////////////
 
@@ -199,7 +203,9 @@
 
 			vec3 p = position;
 
-			//p = p + normal * 0.003 * abs(sin(time/1000.0)*0.5);
+			if (rand(p.xy * time/500.0) < 0.0000001){
+				p = p + normal * 1.2;
+			}
 
 			vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
 			gl_Position = projectionMatrix * modelViewPosition;
@@ -220,7 +226,7 @@
 			float g = color.g;
 			float b = color.b;
 
-			float random = rand(vUv.xy * sin(time/200.0));
+			float random = rand(vUv.xy * sin(time/800.0));
 
 			if (random < 0.1){
 				r = 0.03;
@@ -526,7 +532,6 @@
 		// création de l'étoile
 		let sphereDyson = new THREE.SphereBufferGeometry(40, 64, 64);
 		sphereDyson.computeVertexNormals();
-		//let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0x09deff, emissive: 0x09deff});
 		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
 		// lumière pour la sphère de Dyson
@@ -604,7 +609,7 @@
 
 		// option pour la camera
 		let optCam = gui.addFolder('Camera');
-		optCam.add(options.camera, 'lookAtTheDysonSphere').name("lookAtTheDysonSphere").listen();
+		optCam.add(options.camera, 'lookAtTheDysonSphere').name("DysonSphere").listen();
 		optCam.open();
 
 
