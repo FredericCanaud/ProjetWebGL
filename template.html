@@ -182,6 +182,56 @@
 
 
 <!--
+	///////////////////////////////////
+	/// SHADER SPHERE DE DYSON
+	//////////////////////////////////
+-->
+
+	<script type="x-shader/x-vertex" id="vertexShaderDyson">
+		uniform float time; // le temps
+		varying vec3 vUv; // = position
+
+		///////////////////////////////////////////////
+		///////////////////////////////////////////////
+
+		void main(){
+			vUv = position;
+
+			vec3 p = position;
+
+			//p = p + normal * 0.003 * abs(sin(time/1000.0)*0.5);
+
+			vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+			gl_Position = projectionMatrix * modelViewPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShaderDyson">
+		uniform float time; // le temps
+		uniform vec3 color; // la couleur
+		varying vec3 vUv; // position du pixel dans l'espace
+
+
+		void main(){
+		float r = color.r;
+		float g = color.g;
+		float b = color.b;
+
+		float rndlol = (vUv.x + vUv.y + vUv.z) * time/200.0;
+
+		if (sin(rndlol) < 0.1){
+			r = 1.0;
+			g = 0.0;
+			b = 0.0;
+		}
+
+		vec3 rgb = vec3(r, g, b);
+		gl_FragColor = vec4(rgb, 1.0);
+		}
+	</script>
+
+
+<!--
 //////////////////////////////////////////////////////
 //////////////// SHADER PART OVER ////////////////////
 //////////////////////////////////////////////////////
@@ -442,7 +492,7 @@
 			scene.add(objet);
 		});
 
-
+		//=====================================================================================================
 
 		//////////////////////////////////
 		/// GROUPE DE LA SPHERE DE DYSON
@@ -452,15 +502,35 @@
 		const groupeDyson = new THREE.Group();
 		groupeDyson.position.x = 1200;
 
+		// uniform pour le shader de l'étoile
+		let uniformDyson={
+			time:{
+				value: 0.0
+			},
+			color:{
+				r: 0.01,
+				g: 0.9,
+				b: 1.0
+			}
+		}
+
+		// shader de l'étoile
+		let materialDyson = new THREE.ShaderMaterial({
+			uniforms: uniformDyson,
+			vertexShader: document.getElementById('vertexShaderDyson').textContent,
+			fragmentShader: document.getElementById('fragmentShaderDyson').textContent
+		});
+
 		// création de l'étoile
 		let sphereDyson = new THREE.SphereBufferGeometry(40, 32, 32);
-		let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0x90f0ff, emissive: 0x90f0ff});
-		let dysonStar = new THREE.Mesh(sphereDyson, materialSphereDyson);
+		//let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0x09deff, emissive: 0x09deff});
+		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
 		// lumière pour la sphère de Dyson
-		dysonLight = new THREE.PointLight(0x90f0ff, 1, 300);
+		dysonLight = new THREE.PointLight(0x09deff, 1, 300);
 		dysonStar.add(dysonLight);
 
+		// ajout de l'étoile au groupe
 		groupeDyson.add(dysonStar);
 
 		// paramètre pour créer un anneau
@@ -474,7 +544,7 @@
 		let anneau2 = new THREE.Mesh(geometryRing2, materialRing);
 		let anneau3 = new THREE.Mesh(geometryRing3, materialRing);
 
-		// ajout des anneaux
+		// ajout des anneaux au groupe
 		groupeDyson.add(anneau1);
 		groupeDyson.add(anneau2);
 		groupeDyson.add(anneau3);
@@ -487,7 +557,7 @@
 		// FIN GROUPE DE LA SPHERE DE DYSON
 		////////////////////////////////////
 
-		//=====================================================================
+		//=========================================================================================================
 
 		////////////////////////////////////
 		/// GUI
@@ -608,6 +678,7 @@
 			anneau2.rotation.set(t/1000, t/1000, 0);
 			anneau3.rotation.set(t/1200, 0, t/1200);
 
+			uniformDyson.time.value = t;
 
 			// envoie du temps dans le shader
 			uniformsLapin.time.value = t;
