@@ -211,22 +211,25 @@
 		uniform vec3 color; // la couleur
 		varying vec3 vUv; // position du pixel dans l'espace
 
-
-		void main(){
-		float r = color.r;
-		float g = color.g;
-		float b = color.b;
-
-		float rndlol = (vUv.x + vUv.y + vUv.z) * time/200.0;
-
-		if (sin(rndlol) < 0.1){
-			r = 1.0;
-			g = 0.0;
-			b = 0.0;
+		float rand(vec2 co){
+			return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 		}
 
-		vec3 rgb = vec3(r, g, b);
-		gl_FragColor = vec4(rgb, 1.0);
+		void main(){
+			float r = color.r;
+			float g = color.g;
+			float b = color.b;
+
+			float random = rand(vUv.xy * sin(time/200.0));
+
+			if (random < 0.1){
+				r = 0.03;
+				g = 0.7;
+				b = 1.0;
+			}
+
+			vec3 rgb = vec3(r, g, b);
+			gl_FragColor = vec4(rgb, 1.0);
 		}
 	</script>
 
@@ -500,7 +503,7 @@
 
 		// groupe qui contient la sphere
 		const groupeDyson = new THREE.Group();
-		groupeDyson.position.x = 1200;
+		groupeDyson.position.x = 1400;
 
 		// uniform pour le shader de l'étoile
 		let uniformDyson={
@@ -508,9 +511,8 @@
 				value: 0.0
 			},
 			color:{
-				r: 0.01,
-				g: 0.9,
-				b: 1.0
+				type:'c',
+				value: new THREE.Color(0.03, 0.87, 1.0)
 			}
 		}
 
@@ -522,7 +524,8 @@
 		});
 
 		// création de l'étoile
-		let sphereDyson = new THREE.SphereBufferGeometry(40, 32, 32);
+		let sphereDyson = new THREE.SphereBufferGeometry(40, 64, 64);
+		sphereDyson.computeVertexNormals();
 		//let materialSphereDyson = new THREE.MeshStandardMaterial({color: 0x09deff, emissive: 0x09deff});
 		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
@@ -678,7 +681,12 @@
 			anneau2.rotation.set(t/1000, t/1000, 0);
 			anneau3.rotation.set(t/1200, 0, t/1200);
 
+			// envoie du temps dans le shader de la sphere
 			uniformDyson.time.value = t;
+
+
+			///////////////////////////////////////////
+			///////////////////////////////////////////
 
 			// envoie du temps dans le shader
 			uniformsLapin.time.value = t;
