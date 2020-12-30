@@ -509,7 +509,7 @@
 
 		// groupe qui contient la sphere
 		const groupeDyson = new THREE.Group();
-		groupeDyson.position.x = 1400;
+		groupeDyson.position.x = 2000;
 
 		// uniform pour le shader de l'étoile
 		let uniformDyson={
@@ -556,6 +556,45 @@
 		groupeDyson.add(anneau1);
 		groupeDyson.add(anneau2);
 		groupeDyson.add(anneau3);
+
+		// création du groupe de la planète 1
+		let groupeP1 = new THREE.Group();
+		groupeP1.position.x = 400;
+
+		// création de la planète 1
+		let geoP1 = new THREE.SphereBufferGeometry(30, 40, 40);
+
+
+		// création des lunes
+		let nbLune = 10;
+		let distanceLuneAuCentre = 100;
+		let tabLune = new Array(nbLune);
+		let texture = new THREE.TextureLoader().load("eris.jpg");
+		texture.needsUpdate = true;
+		let spaceBetween = 2*Math.PI/nbLune;  // espacement entre les lunes
+
+		// création de toute les lunes
+		for (let i = 0 ; i < nbLune ; i++){
+			let espacement = spaceBetween*i;  // position suivante
+
+			let geoLune = new THREE.SphereBufferGeometry(10, 64, 64);
+			let materialP1 = new THREE.MeshLambertMaterial({map: texture});
+			geoLune.computeVertexNormals();
+			let luneL1 = new THREE.Mesh(geoLune, materialP1);
+			luneL1.position.x = Math.sin(espacement) * distanceLuneAuCentre;
+			luneL1.position.z = Math.cos(espacement) * distanceLuneAuCentre;
+
+			let infoLune = new Array(2);
+			infoLune[0] = espacement;
+			infoLune[1] = luneL1;
+
+			tabLune[i] = infoLune  // ajout du tableau d'info dans le tableau
+			groupeP1.add(luneL1);
+		}
+
+
+		groupeDyson.add(groupeP1);
+
 
 
 		// ajout du groupe à la scène
@@ -617,7 +656,7 @@
 
 
 		//effetDebut
-		const geometryEffetDebutt = new THREE.RingGeometry( 28, 30, 32 );
+		const geometryEffetDebutt = new THREE.RingGeometry(28, 30, 32);
 		const materialEffetDebutt = new THREE.MeshBasicMaterial( {color: 0xffffff} );
 		const effetDebutt = new THREE.Mesh( geometryEffetDebutt, materialEffetDebutt );
 		effetDebutt.rotateX(-51);
@@ -646,7 +685,6 @@
 		function render() {
 			renderer.render(scene, camera);
 
-			//fait tourner le dodecahedron autour du centre du groupe horizontalement avec un diametre de 250
 			planete1.position.x = sun.position.x + Math.cos(vitesseRotationPlanete1Sun/500)* 800;
 			planete1.position.z = sun.position.z + Math.sin(vitesseRotationPlanete1Sun/500)* 800;
 			planete1.position.y = sun.position.y;
@@ -688,6 +726,13 @@
 
 			// envoie du temps dans le shader de la sphere
 			uniformDyson.time.value = t;
+
+			// révolution des lunes
+			for (let i = 0 ; i < nbLune ; i++){
+
+				tabLune[i][1].position.x = Math.sin(tabLune[i][0] * Math.sin(t/800)) * distanceLuneAuCentre;
+				tabLune[i][1].position.z = Math.cos(tabLune[i][0] * Math.sin(t/800)) * distanceLuneAuCentre;
+			}
 
 
 			///////////////////////////////////////////
