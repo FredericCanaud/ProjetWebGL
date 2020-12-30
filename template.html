@@ -396,11 +396,11 @@
 			},
 			color:{
 				type:'c',
-				value: new THREE.Color(0.3, 0.3, 0.3)
+				value: new THREE.Color(0.0, 0.0, 0.0)
 			},
 			multiplicateur: {
 				type:'f',
-				value: 600.0
+				value: 300.0
 			}
 		}
 
@@ -657,23 +657,25 @@
 		groupeP2.position.x = 800;
 
 		// création de la planète 2
+		let geoP2 = new THREE.SphereBufferGeometry(40, 128, 128);
+		geoP2.computeVertexNormals();
+
 		// uniform de la planete 2
 		let uniformPlanete2= {
 			time:{value: 0},
 			scale:{
 				type:'f',
-				value:0
+				value:1
 			},
 			color:{
 				type:'c',
-				value: new THREE.Color(0.5, 0.5, 0.5)
+				value: new THREE.Color(0.08, 0.08, 0.08)
 			},
 			multiplicateur: {
 				type:'f',
-				value: 1.3
+				value: 600.0
 			}
 		}
-
 
 		// shader planète 2
 		let materialS2 = new THREE.ShaderMaterial({
@@ -682,21 +684,8 @@
 			fragmentShader: document.getElementById('fragmentShader').textContent
 		});
 
-		loader.load("sphere.obj", function(sphere){
-
-			sphere.traverse( function( child ) {
-				if ( child.isMesh ) {
-					child.geometry.computeVertexNormals();
-					child.material = materialS2;
-				}
-			});
-
-			// sphere.scale.set(600,600,600);
-			sphere.needsUpdate = true;
-
-			groupeP2.add(sphere);
-			scene.add(sphere);
-		});
+		let P2 = new THREE.Mesh(geoP2, materialS2);
+		groupeP2.add(P2);
 
 
 		// ajout du groupe de la planète 2 au groupe de la sphère
@@ -833,8 +822,8 @@
 			uniformDyson.time.value = t;
 
 			// révolution de la planète avec les lunes
-			groupeP1.position.x = Math.sin(t/2500) * 500;
-			groupeP1.position.z = Math.cos(t/2500) * 500;
+			groupeP1.position.x = Math.sin(t/2200) * 500;
+			groupeP1.position.z = Math.cos(t/2200) * 500;
 
 			// révolution des lunes
 			for (let i = 0 ; i < nbLune ; i++){
@@ -843,6 +832,13 @@
 				// rotation des lunes
 				tabLune[i][1].rotation.y = -t/800;
 			}
+
+			// passage du temps dans le shader de la planète 2
+			uniformPlanete2.time.value = t;
+
+			// révolution de la planète 2
+			groupeP2.position.x = Math.sin(t/2700) * 800;
+			groupeP2.position.z = Math.cos(t/2700) * 800;
 
 
 			///////////////////////////////////////////
