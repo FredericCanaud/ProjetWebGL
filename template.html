@@ -28,7 +28,6 @@
 
 
 	<script type="x-shader/x-vertex" id="vertexShader">
-		uniform float delta; // peut-être
 		uniform float multiplicateur; //hauteur du déplacement
 		uniform float time; // le temps
 		uniform float scale; // si l'objet a été upscale
@@ -102,7 +101,6 @@
 
 
 	<script type="x-shader/x-fragment" id="fragmentShader">
-		uniform float delta; // éventuellement
 		uniform float time; // le temps
 		uniform vec3 color; // la couleur
 		uniform float scale; //si l'objet a été scale
@@ -267,7 +265,7 @@
 			float g = color.g;
 			float b = color.b;
 
-			float distanceAuMilieu = sin(abs(vUv.y));
+			float distanceAuMilieu = (abs(vUv.y))/(30.0);
 
 			r = distanceAuMilieu;
 			g = distanceAuMilieu;
@@ -574,7 +572,7 @@
 		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
 		// lumière pour la sphère de Dyson
-		dysonLight = new THREE.PointLight(0x09deff, 5, 600);
+		dysonLight = new THREE.PointLight(0xdafaff, 5, 600);
 		dysonStar.add(dysonLight);
 
 		// ajout de l'étoile au groupe
@@ -598,7 +596,7 @@
 
 		// création du groupe de la planète 1
 		let groupeP1 = new THREE.Group();
-		groupeP1.position.x = 400;
+		groupeP1.position.x = 500;
 
 		// création de la planète 1
 		let geoP1 = new THREE.SphereBufferGeometry(30, 40, 40);
@@ -654,6 +652,55 @@
 		// ajout du groupe de la planète 1 au groupe de la sphere
 		groupeDyson.add(groupeP1);
 
+		// création du groupe de la planète 2
+		let groupeP2 = new THREE.Group();
+		groupeP2.position.x = 800;
+
+		// création de la planète 2
+		// uniform de la planete 2
+		let uniformPlanete2= {
+			time:{value: 0},
+			scale:{
+				type:'f',
+				value:0
+			},
+			color:{
+				type:'c',
+				value: new THREE.Color(0.5, 0.5, 0.5)
+			},
+			multiplicateur: {
+				type:'f',
+				value: 1.3
+			}
+		}
+
+
+		// shader planète 2
+		let materialS2 = new THREE.ShaderMaterial({
+			uniforms: uniformPlanete2,
+			vertexShader: document.getElementById('vertexShader').textContent,
+			fragmentShader: document.getElementById('fragmentShader').textContent
+		});
+
+		loader.load("sphere.obj", function(sphere){
+
+			sphere.traverse( function( child ) {
+				if ( child.isMesh ) {
+					child.geometry.computeVertexNormals();
+					child.material = materialS2;
+				}
+			});
+
+			// sphere.scale.set(600,600,600);
+			sphere.needsUpdate = true;
+
+			groupeP2.add(sphere);
+			scene.add(sphere);
+		});
+
+
+		// ajout du groupe de la planète 2 au groupe de la sphère
+		groupeDyson.add(groupeP2);
 
 		// ajout du groupe de la sphere à la scène
 		scene.add(groupeDyson);
@@ -785,10 +832,16 @@
 			// envoie du temps dans le shader de la sphere
 			uniformDyson.time.value = t;
 
+			// révolution de la planète avec les lunes
+			groupeP1.position.x = Math.sin(t/2500) * 500;
+			groupeP1.position.z = Math.cos(t/2500) * 500;
+
 			// révolution des lunes
 			for (let i = 0 ; i < nbLune ; i++){
-				tabLune[i][1].position.x = Math.sin(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
+				tabLune[i][1].position.x = -Math.sin(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
 				tabLune[i][1].position.z = Math.cos(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
+				// rotation des lunes
+				tabLune[i][1].rotation.y = -t/800;
 			}
 
 
