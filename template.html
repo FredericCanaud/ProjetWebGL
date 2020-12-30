@@ -240,6 +240,45 @@
 	</script>
 
 
+	<script type="x-shader/x-vertex" id="vertexShaderPlatenete1">
+		uniform float time; // le temps
+		varying vec3 vUv; // = position
+
+
+		///////////////////////////////////////////////
+		///////////////////////////////////////////////
+
+		void main(){
+			vUv = position;
+			vec3 p = position;
+
+			vec4 modelViewPosition = modelViewMatrix * vec4(p, 1.0);
+			gl_Position = projectionMatrix * modelViewPosition;
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShaderPlatenete1">
+		uniform float time; // le temps
+		uniform vec3 color; // la couleur
+		varying vec3 vUv; // position du pixel dans l'espace
+
+		void main(){
+			float r = color.r;
+			float g = color.g;
+			float b = color.b;
+
+			float distanceAuMilieu = sin(abs(vUv.y));
+
+			r = distanceAuMilieu;
+			g = distanceAuMilieu;
+			b = distanceAuMilieu;
+
+			vec3 rgb = vec3(r, g, b);
+			gl_FragColor = vec4(rgb, 1.0);
+		}
+	</script>
+
+
 <!--
 //////////////////////////////////////////////////////
 //////////////// SHADER PART OVER ////////////////////
@@ -535,7 +574,7 @@
 		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
 		// lumière pour la sphère de Dyson
-		dysonLight = new THREE.PointLight(0x09deff, 1, 300);
+		dysonLight = new THREE.PointLight(0x09deff, 5, 600);
 		dysonStar.add(dysonLight);
 
 		// ajout de l'étoile au groupe
@@ -564,6 +603,26 @@
 		// création de la planète 1
 		let geoP1 = new THREE.SphereBufferGeometry(30, 40, 40);
 
+		// uniform pour le shader de l'étoile
+		let uniformPlatenete1={
+			time:{
+				value: 0.0
+			},
+			color:{
+				type:'c',
+				value: new THREE.Color(0.0, 0.0, 0.0)
+			}
+		}
+
+		// shader de la planète 1
+		let shaderP1 = new THREE.ShaderMaterial({
+			uniforms: uniformPlatenete1,
+			vertexShader: document.getElementById('vertexShaderPlatenete1').textContent,
+			fragmentShader: document.getElementById('fragmentShaderPlatenete1').textContent
+		});
+
+		let P1 = new THREE.Mesh(geoP1, shaderP1);
+		groupeP1.add(P1);
 
 		// création des lunes
 		let nbLune = 10;
@@ -592,12 +651,11 @@
 			groupeP1.add(luneL1);
 		}
 
-
+		// ajout du groupe de la planète 1 au groupe de la sphere
 		groupeDyson.add(groupeP1);
 
 
-
-		// ajout du groupe à la scène
+		// ajout du groupe de la sphere à la scène
 		scene.add(groupeDyson);
 
 		////////////////////////////////////
@@ -729,9 +787,8 @@
 
 			// révolution des lunes
 			for (let i = 0 ; i < nbLune ; i++){
-
-				tabLune[i][1].position.x = Math.sin(tabLune[i][0] * Math.sin(t/800)) * distanceLuneAuCentre;
-				tabLune[i][1].position.z = Math.cos(tabLune[i][0] * Math.sin(t/800)) * distanceLuneAuCentre;
+				tabLune[i][1].position.x = Math.sin(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
+				tabLune[i][1].position.z = Math.cos(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
 			}
 
 
