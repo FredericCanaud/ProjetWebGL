@@ -464,9 +464,20 @@
 
 		scene.add(sun);
 
-		//planete1
+		//boulle univers
 
-		var geometry = new THREE.SphereGeometry(20,32,32);
+		var geometryBoulleUnivers = new THREE.SphereGeometry(8000,32,32);
+		var materialBoulleUnivers = new THREE.MeshPhongMaterial();
+		materialBoulleUnivers.side = THREE.DoubleSide;
+		materialBoulleUnivers.map=THREE.ImageUtils.loadTexture('stars_milkyway.jpg');
+		var boulleUnivers = new THREE.Mesh(geometryBoulleUnivers,materialBoulleUnivers);
+		boulleUnivers.position.set(0,0,0);
+
+		scene.add(boulleUnivers);
+
+		//contour univers
+
+		var boulleUnivers = new THREE.SphereGeometry(20,32,32);
 		var materialPlanete1 = new THREE.MeshPhongMaterial();
 		materialPlanete1.map=THREE.ImageUtils.loadTexture('makemake.jpg');
 		var planete1 = new THREE.Mesh(geometry,materialPlanete1);
@@ -714,6 +725,16 @@
 					camera.rotation.set(groupeDyson.position.x,0,0);
 					camera.lookAt(groupeDyson.position);
 					controls.target = groupeDyson.position;
+				},
+
+				lookAtTheSun : function(){
+					camera.position.x = 10;
+					camera.position.y = -100;
+					camera.position.z = 800;
+					camera.rotation.set(new THREE.Vector3( 0 ,1, 0 ));
+					camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
+					controls.target = sun.position;
+
 				}
 			}
 		}
@@ -743,6 +764,7 @@
 		// option pour la camera
 		let optCam = gui.addFolder('Camera');
 		optCam.add(options.camera, 'lookAtTheDysonSphere').name("DysonSphere").listen();
+		optCam.add(options.camera, 'lookAtTheSun').name("Sun").listen();
 		optCam.open();
 
 
