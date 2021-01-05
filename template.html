@@ -11,7 +11,6 @@
 
 <body>
 	<script src="three.js"></script>
-	<script src="threeCSG.js"></script>
 	<script src="dat.gui.min.js"></script>
 
 	<script id="fonctions">
@@ -366,11 +365,7 @@
 		scene.add(sceneLight);
 
 
-		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/PipelineWebGL_2020.html#/9/2
-		// http://www.unilim.fr/pages_perso/guillaume.gilet/Enseignement/InfoGraphique/WebGL/TP/TP3.html#/3
-		// http://tpwebgl/tp3/template.html
-
-		var uniformsLapin = {
+		let uniformsLapin = {
 			delta:{value: 0},
 			time:{value: 0},
 			scale:{
@@ -387,7 +382,7 @@
 			}
 		}
 
-		var uniformsCube = {
+		let uniformsCube = {
 			delta:{value: 0},
 			time:{value: 0},
 			scale:{
@@ -404,7 +399,7 @@
 			}
 		}
 
-		var uniformsLapinTexture = {
+		let uniformsLapinTexture = {
 			time:{value: 0},
 			scale:{
 				type:'f',
@@ -457,30 +452,30 @@
 		});
 
 		// sun
-		var geometry = new THREE.SphereGeometry(80,32,32);
-		var materialSun = new THREE.MeshPhongMaterial();
+		let geometrySun = new THREE.SphereGeometry(80,32,32);
+		let materialSun = new THREE.MeshPhongMaterial();
 		materialSun.map=THREE.ImageUtils.loadTexture('soleil.jpg');
-		sun = new THREE.Mesh(geometry, materialSun);
+		sun = new THREE.Mesh(geometrySun, materialSun);
 
 		scene.add(sun);
 
 		//boulle univers
 
-		var geometryBoulleUnivers = new THREE.SphereGeometry(8000,32,32);
-		var materialBoulleUnivers = new THREE.MeshPhongMaterial();
+		let geometryBoulleUnivers = new THREE.SphereGeometry(5000,32,32);
+		let materialBoulleUnivers = new THREE.MeshPhongMaterial();
 		materialBoulleUnivers.side = THREE.DoubleSide;
 		materialBoulleUnivers.map=THREE.ImageUtils.loadTexture('stars_milkyway.jpg');
-		var boulleUnivers = new THREE.Mesh(geometryBoulleUnivers,materialBoulleUnivers);
+		let boulleUnivers = new THREE.Mesh(geometryBoulleUnivers,materialBoulleUnivers);
 		boulleUnivers.position.set(0,0,0);
 
 		scene.add(boulleUnivers);
 
 		//contour univers
 
-		var boulleUnivers = new THREE.SphereGeometry(20,32,32);
+		var geometryPlanete1 = new THREE.SphereGeometry(20,32,32);
 		var materialPlanete1 = new THREE.MeshPhongMaterial();
 		materialPlanete1.map=THREE.ImageUtils.loadTexture('makemake.jpg');
-		var planete1 = new THREE.Mesh(geometry,materialPlanete1);
+		var planete1 = new THREE.Mesh(geometryPlanete1,materialPlanete1);
 		planete1.position.set(800,0,0);
 
 		scene.add(planete1);
@@ -488,25 +483,25 @@
 
 		//effetSoleil
 
-		var effetSoleilMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
-    var effetSoleilGeometry = new THREE.SphereGeometry(80, 24, 24);
-    var effetSoleil = new THREE.Mesh(effetSoleilGeometry, effetSoleilMaterial);
+		let effetSoleilMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
+		let effetSoleilGeometry = new THREE.SphereGeometry(80, 24, 24);
+		let effetSoleil = new THREE.Mesh(effetSoleilGeometry, effetSoleilMaterial);
 
-    loader.load("sphere.obj", function(effetSoleil){
+		loader.load("sphere.obj", function(effetSoleil){
 
-        effetSoleil.traverse( function( child ) {
-            if ( child.isMesh ) {
-                child.geometry.computeVertexNormals();
-                child.material = materialD;
-								child.position.set(-200,0,0);
-            }
-        });
-        effetSoleil.scale.set(600,600,600);
-        effetSoleil.position.x = 400;
-        effetSoleil.needsUpdate = true;
+			effetSoleil.traverse( function( child ) {
+				if ( child.isMesh ) {
+					child.geometry.computeVertexNormals();
+					child.material = materialD;
+									child.position.set(-200,0,0);
+				}
+			});
+			effetSoleil.scale.set(600,600,600);
+			effetSoleil.position.x = 400;
+			effetSoleil.needsUpdate = true;
 
-        scene.add(effetSoleil);
-    });
+			scene.add(effetSoleil);
+		});
 
 
 
@@ -516,10 +511,10 @@
 
 		//planete2
 
-		var geometry = new THREE.SphereGeometry(100,32,32);
-		var materialPlanete2 = new THREE.MeshPhongMaterial();
+		let geometryPlanete2 = new THREE.SphereGeometry(100,32,32);
+		let materialPlanete2 = new THREE.MeshPhongMaterial();
 		materialPlanete2.map=THREE.ImageUtils.loadTexture('mars.jpg');
-		var planete2 = new THREE.Mesh(geometry,materialPlanete2);
+		let planete2 = new THREE.Mesh(geometryPlanete2,materialPlanete2);
 		planete2.position.set(-200,0,0);
 
 		scene.add(planete2);
@@ -532,7 +527,7 @@
 
 			objet.material = material;
 			objet.traverse( function( child ) {
-				var texture = new THREE.TextureLoader().load( "ds.jpg"  );
+				let texture = new THREE.TextureLoader().load( "ds.jpg"  );
 
 				if ( child.isMesh ) child.geometry.computeVertexNormals();
 				child.material.map=texture;
