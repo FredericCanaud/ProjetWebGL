@@ -355,7 +355,7 @@
 
 		// Camera et scene
 		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
-		camera.position.set(10, -100, 800);
+		camera.position.set(0, 600, 1800);
 		camera.rotation.set(0,0,0);
 		camera.up = new THREE.Vector3( 0 ,1, 0 );
 		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
@@ -421,12 +421,17 @@
 		///////////////////////////
 		///////////////////////////
 
+		// Création du groupe du soleil
+		let groupeSoleil = new THREE.Group();
+		groupeSoleil.position.x = -600;
+
+
 		// Soleil
 		let geometrySoleil = new THREE.SphereGeometry(80,32,32);
 		let materialSoleil = new THREE.MeshPhongMaterial();
 		materialSoleil.map = textureLoader.load('img/soleil.jpg');
 		soleil = new THREE.Mesh(geometrySoleil, materialSoleil);
-		scene.add(soleil);
+		groupeSoleil.add(soleil);
 
 
 		// Halo autour du Soleil
@@ -449,9 +454,10 @@
 			effetSoleil.scale.set(600,600,600);
 			effetSoleil.position.x = 400;
 			effetSoleil.needsUpdate = true;
-			scene.add(effetSoleil);
+			groupeSoleil.add(effetSoleil);
 		});
-		scene.add(effetSoleil);
+
+		groupeSoleil.add(effetSoleil);
 
 
 		// Arriere plan d'univers
@@ -461,6 +467,7 @@
 		materialUnivers.map = textureLoader.load('img/stars.jpg');
 		let univers = new THREE.Mesh(geometryUnivers,materialUnivers);
 		univers.position.set(0,0,0);
+
 		scene.add(univers);
 
 
@@ -470,7 +477,7 @@
 		materialKepler.map = textureLoader.load('img/kepler.jpg');
 		const kepler = new THREE.Mesh(geometryKepler, materialKepler);
 		kepler.position.set(800,0,0);
-		scene.add(kepler);
+		groupeSoleil.add(kepler);
 
 
 		// Anneau autour de Kepler
@@ -479,7 +486,7 @@
 		materialAnneau.map = textureLoader.load('img/saturnring.png');
 		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
 		anneau.rotateX(90);
-		scene.add(anneau);
+		groupeSoleil.add(anneau);
 
 		// Planete 2
 		let geometryPlanete2 = new THREE.SphereGeometry(100,32,32);
@@ -487,7 +494,7 @@
 		materialPlanete2.map = textureLoader.load('img/mars.jpg');
 		let planete2 = new THREE.Mesh(geometryPlanete2,materialPlanete2);
 		planete2.position.set(-200,0,0);
-		scene.add(planete2);
+		groupeSoleil.add(planete2);
 
 
 		// Etoile noire
@@ -503,8 +510,10 @@
 			objet.rotateZ(600);
 
 			objet.scale.set(2,2,2);
-			scene.add(objet);
+			groupeSoleil.add(objet);
 		});
+
+		scene.add(groupeSoleil);
 
 		//=====================================================================================================
 
@@ -523,6 +532,8 @@
 			vertexShader: document.getElementById('vertexShaderDyson').textContent,
 			fragmentShader: document.getElementById('fragmentShaderDyson').textContent
 		});
+
+		// Création de la sphère
 		let sphereDyson = new THREE.SphereBufferGeometry(40, 64, 64);
 		sphereDyson.computeVertexNormals();
 
@@ -688,7 +699,7 @@
 		const materialCyclone = new THREE.MeshBasicMaterial({map: textureCyclone});
 		const cyclone = new THREE.Mesh(geometryCyclone, materialCyclone);
 		scene.add(cyclone);
-		cyclone.position.set(500, 0, 0);
+		cyclone.position.set(0, 0, 0);
 
 		// Déclaration du shader, calculé en post-processing
 		const trouNoirShader = new ShaderPass({
@@ -698,7 +709,7 @@
 		});
 
 		// Position du trou noir dans l'espace
-		const trouNoirCentre = new THREE.Vector3(500, 0, 0);
+		const trouNoirCentre = new THREE.Vector3(0, 0, 0);
 
 		// Position du trou noir à l'écran
 		const trouNoirPosition = new THREE.Vector2(0, 0);
@@ -716,12 +727,22 @@
 
 		let gui = new dat.GUI();
 		let options = {
+			variables :{
+				lookingAtSun : false,
+				lookingAtDyson : false,
+				vitesseGroupeMultiplicateur : 1,
+				vitesseRotationSoleilMultiplicateur : 1,
+				vitesseRotationDysonMultiplicateur : 1
+			},
 			camera :{
 				// Positionnement de la camera sur la sphere de Dyson
 				lookAtTheDysonSphere : function(){
+					options.variables.lookingAtSun = false;
+					options.variables.lookingAtDyson = true;
+
 					camera.position.x = groupeDyson.position.x;
-					camera.position.y = 100;
-					camera.position.z = 400;
+					camera.position.y = groupeDyson.position.y + 100;
+					camera.position.z = groupeDyson.position.z + 400;
 					camera.rotation.set(groupeDyson.position.x,0,0);
 					camera.lookAt(groupeDyson.position);
 					controls.target = groupeDyson.position;
@@ -729,20 +750,34 @@
 
 				// Positionnement de la camera sur le Soleil
 				lookAtTheSun : function(){
-					camera.position.x = 10;
-					camera.position.y = -100;
-					camera.position.z = 800;
+					options.variables.lookingAtSun = true;
+					options.variables.lookingAtDyson = false;
+					camera.position.x = groupeSoleil.position.x;
+					camera.position.y = groupeSoleil.position.y + 200;
+					camera.position.z = groupeSoleil.position.z + 800;
 					camera.rotation.set(new THREE.Vector3( 0 ,1, 0 ));
-					camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
-					controls.target = soleil.position;
+					camera.lookAt(groupeSoleil.position);
+					controls.target = groupeSoleil.position;
 
+				},
+
+				// Positionnement de la camera sur le Soleil
+				reinitialisation : function(){
+					options.variables.lookingAtSun = false;
+					options.variables.lookingAtDyson = false;
+					camera.position.x = 0;
+					camera.position.y = 300;
+					camera.position.z = 1500;
+					camera.rotation.set(new THREE.Vector3( 0 ,1, 0 ));
+					let origin = new THREE.Vector3( 0 ,0, 0 );
+					camera.lookAt(origin);
+					controls.target = origin;
 				}
 			}
 		}
 
 		// Intensité de base pour la lumière ambiante et du soleil
 		lumiereControle = new function() {
-
 			this.intensiteSoleil = 2;
 			this.intensiteLumiereGeneral=1;
 		}
@@ -754,18 +789,25 @@
 		lumiere.open();
 
 
-		// Gestion du positionnement la camera
-		let optCam = gui.addFolder('Camera');
-		optCam.add(options.camera, 'lookAtTheDysonSphere').name("DysonSphere").listen();
-		optCam.add(options.camera, 'lookAtTheSun').name("Sun").listen();
-		optCam.open();
-
-
 		// Gestion du trou noir
 		let optTrouNoir = gui.addFolder('Trou noir');
 		gui.add(trouNoir, 'rayon', 1, 20);
 		gui.add(trouNoir, 'transparence');
 		optTrouNoir.open()
+
+		// gestion de la vitesse de la scène
+		let optScene = gui.addFolder('Scène');
+		optScene.add(options.variables, 'vitesseGroupeMultiplicateur', 0, 3).name("Vitesse groupes").listen();
+		optScene.add(options.variables, 'vitesseRotationDysonMultiplicateur', 0, 3).name("Vitesse Dyson").listen();
+		optScene.add(options.variables, 'vitesseRotationSoleilMultiplicateur', 0, 3).name("Vitesse Soleil").listen();
+		optScene.open();
+
+		// Gestion du positionnement la camera
+		let optCam = gui.addFolder('Camera');
+		optCam.add(options.camera, 'lookAtTheDysonSphere').name("DysonSphere").listen();
+		optCam.add(options.camera, 'lookAtTheSun').name("Sun").listen();
+		optCam.add(options.camera, 'reinitialisation').name("Reinit").listen();
+		optCam.open();
 
 		animate();
 
@@ -776,25 +818,13 @@
 		function render() {
 			renderer.render(scene, camera);
 
-			kepler.position.x = soleil.position.x + Math.cos(vitesseRotationSoleil/900)* 800;
-			kepler.position.z = soleil.position.z + Math.sin(vitesseRotationSoleil/900)* 800;
-			kepler.position.y = soleil.position.y;
-
-			planete2.position.x = soleil.position.x - Math.cos(vitesseRotationSoleil/900)* 450;
-			planete2.position.z = soleil.position.z - Math.sin(vitesseRotationSoleil/900)* 450;
-			planete2.position.y = soleil.position.y;
-
-			anneau.position.x = kepler.position.x;
-			anneau.position.y = kepler.position.y;
-			anneau.position.z = kepler.position.z;
-
 			//lumiere du soleil
 			pointLight.intensity = lumiereControle.intensiteSoleil;
 
 			//lumiere de la scene
 			sceneLight.intensity = lumiereControle.intensiteLumiereGeneral*0.5;
 
-			const p = new THREE.Vector3();
+			const p = new THREE.Vector3(0, 0, 0);
 			p.set(trouNoirCentre.x, trouNoirCentre.y, trouNoirCentre.z);
 			p.project(camera);
 			trouNoirPosition.set((1 + p.x)*0.5, (1 + p.y)*0.5);
@@ -809,12 +839,48 @@
 		}
 
 		function animate(t) {
+			// Révolution de la planète avec l'anneau
+			kepler.position.x = Math.cos(t * options.variables.vitesseRotationSoleilMultiplicateur/900)* 800;
+			kepler.position.z = Math.sin(t * options.variables.vitesseRotationSoleilMultiplicateur/900)* 800;
+
+
+			// révolution de la planète type Mars
+			planete2.position.x = soleil.position.x - Math.cos(t * options.variables.vitesseRotationSoleilMultiplicateur/900)* 450;
+			planete2.position.z = soleil.position.z - Math.sin(t * options.variables.vitesseRotationSoleilMultiplicateur/900)* 450;
+
+
+			// l'anneau suit sa planète
+			anneau.position.x = kepler.position.x;
+			anneau.position.y = kepler.position.y;
+			anneau.position.z = kepler.position.z;
+
+
 			kepler.rotation.set(1,vitesseSelfRotationKepler/800,1);
 			vitesseSelfRotationKepler=vitesseSelfRotationKepler+10;
 
 			vitesseRotationSoleil = vitesseRotationSoleil+10;
 
 			tailleEffetDepartSoleil = tailleEffetDepartSoleil*1.02;
+
+
+			// blocage de la caméra sur la cible
+			if (options.variables.lookingAtDyson){
+				if (options.variables.vitesseGroupeMultiplicateur != 0){
+					camera.position.x = groupeDyson.position.x;
+					camera.position.y = groupeDyson.position.y + 200;
+					camera.position.z = groupeDyson.position.z + 600;
+				}
+				camera.lookAt(groupeDyson.position);
+			}
+
+			if (options.variables.lookingAtSun){
+				if (options.variables.vitesseGroupeMultiplicateur != 0){
+					camera.position.x = groupeSoleil.position.x;
+					camera.position.y = groupeSoleil.position.y + 200;
+					camera.position.z = groupeSoleil.position.z + 800;
+				}
+				camera.lookAt(groupeSoleil.position);
+			}
 
 			/////////////////////////////
 			/// GROUPE SPHERE DE DYSON
@@ -829,8 +895,8 @@
 			uniformDyson.time.value = t;
 
 			// Révolution de la planète avec les lunes
-			groupeLunes.position.x = Math.sin(t/2200) * 500;
-			groupeLunes.position.z = Math.cos(t/2200) * 500;
+			groupeLunes.position.x = Math.sin(t * options.variables.vitesseRotationDysonMultiplicateur/2200) * 500;
+			groupeLunes.position.z = Math.cos(t * options.variables.vitesseRotationDysonMultiplicateur/2200) * 500;
 
 			// Révolution des lunes
 			for (let i = 0 ; i < nbLunes ; i++){
@@ -845,23 +911,29 @@
 			uniformsSoleil.time.value = t;
 
 			// Révolution élliptique de la planète 2
-			groupeP2.position.x = (Math.sin(t/2700)/1.4) * 1000;
-			groupeP2.position.z = Math.cos(t/2700) * 1000;
+			groupeP2.position.x = (Math.sin(t * options.variables.vitesseRotationDysonMultiplicateur/2700)/1.4) * 1000;
+			groupeP2.position.z = Math.cos(t * options.variables.vitesseRotationDysonMultiplicateur/2700) * 1000;
 
 			// Rotation de la planète de lave
-			planeteLave.rotation.set(0, t/800, 0);
+			planeteLave.rotation.set(0, t * options.variables.vitesseRotationDysonMultiplicateur/800, 0);
 
 			// Révolution planète lave
-			planeteLave.position.x = Math.sin(t/1000) * 250;
-			planeteLave.position.z = Math.cos(t/1000) * 250;
-
+			planeteLave.position.x = Math.sin(t * options.variables.vitesseRotationDysonMultiplicateur/1000) * 250;
+			planeteLave.position.z = Math.cos(t * options.variables.vitesseRotationDysonMultiplicateur/1000) * 250;
 
 			// Révolution du vaisseau
-			vaisseau.position.x = Math.sin(t/1000) * -250;
-			vaisseau.position.z = Math.cos(t/1000) * -250;
+			vaisseau.position.x = Math.sin(t * options.variables.vitesseRotationDysonMultiplicateur/1000) * -250;
+			vaisseau.position.z = Math.cos(t * options.variables.vitesseRotationDysonMultiplicateur/1000) * -250;
 
 			// Rotation du vaisseau pour qu'il reste en face de l'étoile
-			vaisseau.rotation.z = (t/1000)+Math.PI;
+			vaisseau.rotation.z = (t * options.variables.vitesseRotationDysonMultiplicateur/1000)+Math.PI;
+
+			// Révolution des groupes autour du trou noir
+			groupeDyson.position.x = Math.sin(t * options.variables.vitesseGroupeMultiplicateur/4000) * 2000;
+			groupeDyson.position.z = Math.cos(t * options.variables.vitesseGroupeMultiplicateur/4000) * 2000;
+
+			groupeSoleil.position.x = Math.sin(t * options.variables.vitesseGroupeMultiplicateur/2000) * -500;
+			groupeSoleil.position.z = Math.cos(t * options.variables.vitesseGroupeMultiplicateur/2000) * -500;
 
 			///////////////////////////////////////////
 			///////////////////////////////////////////
