@@ -622,16 +622,15 @@
 		let planeteLave = new THREE.Mesh(geoP3, materialLave);
 		planeteLave.position.x = 250;
 
+		// ajout de la planète de lave
 		groupeDyson.add(planeteLave);
 
-		// création du groupe du vaisseau
-		let groupeP3 = new THREE.Group();
-
-		// TODO
 
 		// textures du vaisseau
 		let textureVaisseau = textureLoader.load("img/vaultersShip.png");
 		textureVaisseau.needsUpdate = true;
+
+		let vaisseau = new THREE.Group();
 
 		// création du vaisseau
 		objLoader.load("obj/vaisseauVaulters.obj", function (objet){
@@ -643,16 +642,17 @@
 				}
 			});
 
-			objet.position.set(300,0,0);
-			objet.rotation.set(300, 0, 0);
+			vaisseau.position.set(300,0,0);
+			vaisseau.rotation.set(300, 0, -300);
 
 			objet.scale.set(1,1,1);
 
-			// ajout du vaisseau au groupe de la sphere
-			groupeDyson.add(objet);
+			// ajout de l'objet dans le groupe vaisseau afin de pouvoir le manipulé dans la fonction animate()
+			vaisseau.add(objet);
 		});
 
-
+		// ajout du vaisseau au groupe de la sphere
+		groupeDyson.add(vaisseau);
 
 
 		// Ajout du groupe de la sphere à la scène
@@ -854,6 +854,14 @@
 			// Révolution planète lave
 			planeteLave.position.x = Math.sin(t/1000) * 250;
 			planeteLave.position.z = Math.cos(t/1000) * 250;
+
+
+			// Révolution du vaisseau
+			vaisseau.position.x = Math.sin(t/1000) * -250;
+			vaisseau.position.z = Math.cos(t/1000) * -250;
+
+			// Rotation du vaisseau pour qu'il reste en face de l'étoile
+			vaisseau.rotation.z = (t/1000)+Math.PI;
 
 			///////////////////////////////////////////
 			///////////////////////////////////////////
