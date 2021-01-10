@@ -19,11 +19,11 @@
 -->
 
 	<script type="x-shader/x-vertex" id="vertexShader">
-		uniform float multiplicateur; //hauteur du déplacement
-		uniform float time; // le temps
-		uniform float scale; // si l'objet a été upscale
-		varying vec3 vUv; // = position
-		varying vec2 bande; //la bande
+		uniform float multiplicateur; // Hauteur du déplacement
+		uniform float time; // Temps
+		uniform float scale; // Echelle de l'objet
+		varying vec3 vUv; // Position
+		varying vec2 bande; // Bande
 
 		// renvoie le rapport entre la distance entre le x du point moins le min(ou max) et la distance entre le min(ou le max) de la bande et le centre de la bande
 		float distanceCentreX(vec2 bande, float centreBande, vec3 vertex){
@@ -91,11 +91,11 @@
 	</script>
 
 	<script type="x-shader/x-fragment" id="fragmentShader">
-		uniform float time; // le temps
-		uniform vec3 color; // la couleur
-		uniform float scale; //si l'objet a été scale
-		varying vec3 vUv; // position du pixel dans l'espace
-		varying vec2 bande; // la bande
+		uniform float time; // Temps
+		uniform vec3 color; // Couleur
+		uniform float scale; // Echelle de l'objet
+		varying vec3 vUv; // Position du pixel dans l'espace
+		varying vec2 bande; // Bande
 
 		void main(){
 			float r = color.r;
@@ -122,18 +122,12 @@
 		}
 	</script>
 
-<!--
-	///////////////////////////////////////////////
-	////// Avec texture sur le lapin
-	///////////////////////////////////////////////
--->
 	<script type="x-shader/x-vertex" id="vertexShader2">
-		uniform float multiplicateur; //hauteur du déplacement
-		uniform float time; // le temps
-		uniform float scale; // si l'objet a été upscale
-		varying vec3 vUv; // = position
-		varying vec2 bande; //la bande
-		varying vec2 textureVec; // coordonnées de texture à un point donné
+		uniform float multiplicateur; // Hauteur du déplacement
+		uniform float time; // Temps
+		varying vec3 vUv; // Position
+		varying vec2 bande; // Bande
+		varying vec2 textureVec; // Coordonnées de texture à un point donné
 
 		///////////////////////////////////////////////
 		///////////////////////////////////////////////
@@ -152,12 +146,11 @@
 	</script>
 
 	<script type="x-shader/x-fragment" id="fragmentShader2">
-		uniform float time; // le temps
-		uniform vec3 color; // la couleur (si on veut)
-		uniform float scale; // si l'objet est scale
-		varying vec3 vUv; // position du pixel dans l'espace
-		uniform sampler2D texture1; // texture de l'objet
-		varying vec2 textureVec; // coordonnées de texture à un point donné
+		uniform float time; // Temps
+		uniform vec3 color; // Couleur
+		varying vec3 vUv; // Position du pixel dans l'espace
+		uniform sampler2D texture1; // Texture de l'objet
+		varying vec2 textureVec; // Coordonnées de texture à un point donné
 
 		void main(){
 			// chargement de la texture
@@ -176,8 +169,8 @@
 -->
 
 	<script type="x-shader/x-vertex" id="vertexShaderDyson">
-		uniform float time; // le temps
-		varying vec3 vUv; // = position
+		uniform float time; // Temps
+		varying vec3 vUv; // Position
 
 		float rand(vec2 co){
 			return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -201,9 +194,9 @@
 	</script>
 
 	<script type="x-shader/x-fragment" id="fragmentShaderDyson">
-		uniform float time; // le temps
-		uniform vec3 color; // la couleur
-		varying vec3 vUv; // position du pixel dans l'espace
+		uniform float time; // Temps
+		uniform vec3 color; // Couleur
+		varying vec3 vUv; // Position du pixel dans l'espace
 
 		float rand(vec2 co){
 			return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
@@ -228,9 +221,9 @@
 	</script>
 
 
-	<script type="x-shader/x-vertex" id="vertexShaderPlatenete1">
-		uniform float time; // le temps
-		varying vec3 vUv; // = position
+	<script type="x-shader/x-vertex" id="vertexShaderPlanete">
+		uniform float time; // Temps
+		varying vec3 vUv; // Position du pixel dans l'espace
 
 
 		///////////////////////////////////////////////
@@ -245,10 +238,10 @@
 		}
 	</script>
 
-	<script type="x-shader/x-fragment" id="fragmentShaderPlatenete1">
-		uniform float time; // le temps
-		uniform vec3 color; // la couleur
-		varying vec3 vUv; // position du pixel dans l'espace
+	<script type="x-shader/x-fragment" id="fragmentShaderPlanete">
+		uniform float time; // Temps
+		uniform vec3 color; // Couleur
+		varying vec3 vUv; // Position du pixel dans l'espace
 
 		void main(){
 			float r = color.r;
@@ -320,49 +313,39 @@
 		import { RenderPass } from 'https://unpkg.com/three@0.121.1/examples/jsm/postprocessing/RenderPass.js';
 		import { ShaderPass } from 'https://unpkg.com/three@0.121.1/examples/jsm/postprocessing/ShaderPass.js';
 
-		// constant
+		// Taille fenêtre
 		const width = window.innerWidth;
 		const height = window.innerHeight;
 
-
-		// global object
+		// Objets globaux
 		let renderer, scene, camera, controls, axesHelper, bgTexture, bgWidth, bgHeight;
 
-		//shaderMaterial
+		// Matériaux
 		let materialS;
 		let vertexDisplacement;
 
-		//tailleEffet
+		// Effets
 		let tailleEffetDepartSoleil = 1;
+		let vitesseSelfRotationKepler = 0;
+		let vitesseRotationSoleil = 0;
 
-		//compteur vitesse selfRotation
-		let vitesseSelfRotationPlanete1 = 0;
 
-		//compteur vitesse rotation
-		let vitesseRotationPlanete1Sun = 0;
+		// Planetes
+		let soleil;
 
-		//gui
-		let lumiereControl;
-
-		//planete
-		let sun;
-
-		// object
-		let sphere;
-
-		// light
+		// Lumieres
 		let pointLight;
 		let pointLightPurple;
 		let dysonLight;
 		let sceneLight;
+		let lumiereControle;
 
-
-		// events
+		// Events
 		window.addEventListener('keydown', onKeyDown, false);
 		window.addEventListener('resize', onWindowResize, false);
 
 
-		// renderer
+		// Renderer
 		renderer = new THREE.WebGLRenderer({ antialias: true });
 		renderer.setPixelRatio(window.devicePixelRatio);
 		renderer.setSize(width, height);
@@ -370,23 +353,27 @@
 		renderer.setClearColor(0x090909, 1.0);//0x00ffff
 		renderer.clear();
 
-		// camera
+		// Camera et scene
 		camera = new THREE.PerspectiveCamera(50, width/height, 1, 10000); // PerspectiveCamera(fov, aspect, near, far );
 		camera.position.set(10, -100, 800);
 		camera.rotation.set(0,0,0);
 		camera.up = new THREE.Vector3( 0 ,1, 0 );
 		camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
-
-		// orbit controller
-		controls = new OrbitControls(camera, renderer.domElement);
-
-		// scene
 		scene = new THREE.Scene();
 
+		// Controllers et Loaders
+		controls = new OrbitControls(camera, renderer.domElement);
+		let objLoader = new OBJLoader();
+		let textureLoader = new THREE.TextureLoader();
+
+		// Helpers
 		axesHelper = new THREE.AxesHelper(50);
 		//scene.add(axesHelper);
 
-		// lights
+		///////////////////////////
+		///////////////////////////
+
+		// Lumières
 		pointLight = new THREE.PointLight(0xfeefaf, 10, 500);
 		pointLight.position.set(0, 0, 0);
 		scene.add(pointLight);
@@ -395,185 +382,122 @@
 		sceneLight.position.set(10,-100,800);
 		scene.add(sceneLight);
 
-		let objLoader = new OBJLoader();
-		let textureLoader = new THREE.TextureLoader();
 
-		let uniformsLapin = {
-			delta:{value: 0},
-			time:{value: 0},
-			scale:{
-				type:'f',
-				value:600
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.3, 0.3, 0.3)
-			},
-			multiplicateur: {
-				type:'f',
-				value: 1.3
-			}
-		}
-
-		let uniformsCube = {
-			delta:{value: 0},
-			time:{value: 0},
-			scale:{
-				type:'f',
-				value:1
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.0, 0.0, 0.0)
-			},
-			multiplicateur: {
-				type:'f',
-				value: 300.0
-			}
-		}
-
-		let uniformsLapinTexture = {
-			time:{value: 0},
-			scale:{
-				type:'f',
-				value:600
-			},
-			texture1: {
-				type: "t",
-				value: textureLoader.load( "img/soleil.jpg" )
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.3, 0.3, 0.3)
-			},
-			multiplicateur: {
-				type:'f',
-				value: 1.3
-			}
+		// Uniforms
+		let uniformsSoleil = {
+			time:           { type: 'f', value: 0.0 },
+			scale:          { type: 'f', value: 600.0 },
+			texture1:       { type: 't', value: textureLoader.load( "img/soleil.jpg" ) },
+			color:          { type: 'c', value: new THREE.Color(0.3, 0.3, 0.3) },
+			multiplicateur: { type:'f', value: 1.3 }
 		}
 
 		let uniformsTrouNoir = {
+			tDiffuse:        { type: 'f', value: null },
+			_Ratio:          { type: 'f', value: 0.0 },
+			_Rayon:          { type: 'f', value: 10.0 },
+			_DistanceCamera: { type: 'f', value: 0.0 },
+			_Position:       { type: 'f', value: null },
+			_Transparence:   { type: 'f', value: 0.0 }
+		}
 
-			tDiffuse:      { type: 'f', value: null },
-			_Ratio:        { type: 'f', value: 0.0 },
-			_Rayon:        { type: 'f', value: 10.0 },
-			_Off:          { type: 'f', value: 1.0 },
-			_DistanceCamera:     { type: 'f', value: 0.0 },
-			_Position:     { type: 'f', value: null },
-			_Transparence: { type: 'f', value: 0.0 }
+		let uniformPlanete={
+			time:  { type: 'f', value: 0.0 },
+			color: { type: 'c', value: new THREE.Color(0.0, 0.0, 0.0) }
+		}
+
+		let uniformPlanete2= {
+			time:           { type: 'f', value: 0.0 },
+			scale:          { type: 'f', value: 1.0 },
+			color:          { type: 'c', value: new THREE.Color(0.08, 0.08, 0.08) },
+			multiplicateur: { type: 'f', value: 600.0 }
+		}
+
+		let uniformDyson={
+			time:  { type: 'f', value: 0.0 },
+			color: { type: 'c', value: new THREE.Color(0.03, 0.87, 1.0) }
 		}
 
 		///////////////////////////
 		///////////////////////////
 
-
-		materialS = new THREE.ShaderMaterial({
-			uniforms: uniformsLapin,
-			vertexShader: document.getElementById('vertexShader').textContent,
-			fragmentShader: document.getElementById('fragmentShader').textContent
-		});
-
-		///////////////////////////
-		///////////////////////////
-
-		let materialD = new THREE.ShaderMaterial({
-			uniforms: uniformsLapinTexture,
-			vertexShader: document.getElementById('vertexShader2').textContent,
-			fragmentShader: document.getElementById('fragmentShader2').textContent
-		});
-
-		///////////////////////////
-		///////////////////////////
-
-		let materialC = new THREE.ShaderMaterial({
-			uniforms: uniformsCube,
-			vertexShader: document.getElementById('vertexShader').textContent,
-			fragmentShader: document.getElementById('fragmentShader').textContent
-		});
-
-		// sun
-		let geometrySun = new THREE.SphereGeometry(80,32,32);
-		let materialSun = new THREE.MeshPhongMaterial();
-		materialSun.map = textureLoader.load('img/soleil.jpg');
-		sun = new THREE.Mesh(geometrySun, materialSun);
-
-		scene.add(sun);
-
-		//boulle univers
-
-		let geometryBoulleUnivers = new THREE.SphereGeometry(5000,32,32);
-		let materialBoulleUnivers = new THREE.MeshPhongMaterial();
-		materialBoulleUnivers.side = THREE.DoubleSide;
-		materialBoulleUnivers.map = textureLoader.load('img/stars_milkyway.jpg');
-		let boulleUnivers = new THREE.Mesh(geometryBoulleUnivers,materialBoulleUnivers);
-		boulleUnivers.position.set(0,0,0);
-
-		scene.add(boulleUnivers);
-
-		//contour univers
-
-		const geometryPlanete1 = new THREE.SphereGeometry(20, 32, 32);
-		const materialPlanete1 = new THREE.MeshPhongMaterial();
-		materialPlanete1.map = textureLoader.load('img/makemake.jpg');
-		const planete1 = new THREE.Mesh(geometryPlanete1, materialPlanete1);
-		planete1.position.set(800,0,0);
-
-		scene.add(planete1);
+		// Soleil
+		let geometrySoleil = new THREE.SphereGeometry(80,32,32);
+		let materialSoleil = new THREE.MeshPhongMaterial();
+		materialSoleil.map = textureLoader.load('img/soleil.jpg');
+		soleil = new THREE.Mesh(geometrySoleil, materialSoleil);
+		scene.add(soleil);
 
 
-		//effetSoleil
-
+		// Halo autour du Soleil
 		let effetSoleilMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff266, emissiveIntensity: 1 });
 		let effetSoleilGeometry = new THREE.SphereGeometry(80, 24, 24);
 		let effetSoleil = new THREE.Mesh(effetSoleilGeometry, effetSoleilMaterial);
-
-		objLoader.load("sphere.obj", function(effetSoleil){
+		objLoader.load("obj/sphere.obj", function(effetSoleil){
 
 			effetSoleil.traverse( function( child ) {
 				if ( child.isMesh ) {
 					child.geometry.computeVertexNormals();
-					child.material = materialD;
-									child.position.set(-200,0,0);
+					child.material = new THREE.ShaderMaterial({
+						uniforms: uniformsSoleil,
+						vertexShader: document.getElementById('vertexShader2').textContent,
+						fragmentShader: document.getElementById('fragmentShader2').textContent
+					});
+					child.position.set(-200,0,0);
 				}
 			});
 			effetSoleil.scale.set(600,600,600);
 			effetSoleil.position.x = 400;
 			effetSoleil.needsUpdate = true;
-
 			scene.add(effetSoleil);
 		});
-
-
-
 		scene.add(effetSoleil);
 
 
+		// Arriere plan d'univers
+		let geometryUnivers = new THREE.SphereGeometry(5000,32,32);
+		let materialUnivers = new THREE.MeshPhongMaterial();
+		materialUnivers.side = THREE.DoubleSide;
+		materialUnivers.map = textureLoader.load('img/stars.jpg');
+		let univers = new THREE.Mesh(geometryUnivers,materialUnivers);
+		univers.position.set(0,0,0);
+		scene.add(univers);
 
-		//planete2
 
+		// Planete Kepler
+		const geometryKepler = new THREE.SphereGeometry(60, 32, 32);
+		const materialKepler = new THREE.MeshPhongMaterial();
+		materialKepler.map = textureLoader.load('img/kepler.jpg');
+		const kepler = new THREE.Mesh(geometryKepler, materialKepler);
+		kepler.position.set(800,0,0);
+		scene.add(kepler);
+
+
+		// Anneau autour de Kepler
+		const geometryAnneau = new THREE.RingGeometry( 80, 70, 32 );
+		const materialAnneau = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
+		materialAnneau.map = textureLoader.load('img/saturnring.png');
+		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
+		anneau.rotateX(90);
+		scene.add(anneau);
+
+		// Planete 2
 		let geometryPlanete2 = new THREE.SphereGeometry(100,32,32);
 		let materialPlanete2 = new THREE.MeshPhongMaterial();
 		materialPlanete2.map = textureLoader.load('img/mars.jpg');
 		let planete2 = new THREE.Mesh(geometryPlanete2,materialPlanete2);
 		planete2.position.set(-200,0,0);
-
 		scene.add(planete2);
 
 
-		//deathStar
-
-		objLoader.load( "ds.obj", function (objet){
+		// Etoile noire
+		objLoader.load("obj/etoileNoire.obj", function (objet){
 			objet.material = new THREE.ShaderMaterial({});
 			objet.traverse( function( child ) {
-				let texture = textureLoader.load('img/ds.jpg');
-
+				let texture = textureLoader.load('img/etoileNoire.jpg');
 				if ( child.isMesh ) child.geometry.computeVertexNormals();
-				child.material.map=texture;
-
-			} );
-
-
-
+					child.material.map = texture;
+			});
 			objet.position.set(0,300,0);
 			objet.rotateX(500);
 			objet.rotateZ(600);
@@ -588,95 +512,65 @@
 		/// GROUPE DE LA SPHERE DE DYSON
 		//////////////////////////////////
 
-		// groupe qui contient la sphere
+		// Groupe qui contient la sphere
 		const groupeDyson = new THREE.Group();
 		groupeDyson.position.x = 2000;
 
-		// uniform pour le shader de l'étoile
-		let uniformDyson={
-			time:{
-				value: 0.0
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.03, 0.87, 1.0)
-			}
-		}
 
-		// shader de l'étoile
+		// Shader de la sphere de Dyson
 		let materialDyson = new THREE.ShaderMaterial({
 			uniforms: uniformDyson,
 			vertexShader: document.getElementById('vertexShaderDyson').textContent,
 			fragmentShader: document.getElementById('fragmentShaderDyson').textContent
 		});
-
-		// création de l'étoile
 		let sphereDyson = new THREE.SphereBufferGeometry(40, 64, 64);
 		sphereDyson.computeVertexNormals();
-		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 
 		// lumière pour la sphère de Dyson
+		let dysonStar = new THREE.Mesh(sphereDyson, materialDyson);
 		dysonLight = new THREE.PointLight(0xdafaff, 5, 600);
 		dysonStar.add(dysonLight);
 
 		// ajout de l'étoile au groupe
 		groupeDyson.add(dysonStar);
 
-		// paramètre pour créer un anneau
+		// Création des anneaux de la sphère
 		let geometryRing1 = new THREE.CylinderBufferGeometry(60, 60, 10, 64, 10, true);
 		let geometryRing2 = new THREE.CylinderBufferGeometry(70, 70, 10, 64, 10, true);
 		let geometryRing3 = new THREE.CylinderBufferGeometry(80, 80, 10, 64, 10, true);
 		let materialRing = new THREE.MeshLambertMaterial({color: 0xffffff, side: THREE.DoubleSide});
-
-		// création des anneaux
 		let anneau1 = new THREE.Mesh(geometryRing1, materialRing);
 		let anneau2 = new THREE.Mesh(geometryRing2, materialRing);
 		let anneau3 = new THREE.Mesh(geometryRing3, materialRing);
-
-		// ajout des anneaux au groupe
 		groupeDyson.add(anneau1);
 		groupeDyson.add(anneau2);
 		groupeDyson.add(anneau3);
 
-		// création du groupe de la planète 1
-		let groupeP1 = new THREE.Group();
-		groupeP1.position.x = 500;
 
-		// création de la planète 1
-		let geoP1 = new THREE.SphereBufferGeometry(30, 40, 40);
+		// Création du groupe de la planete aux lunes
+		let groupeLunes = new THREE.Group();
+		groupeLunes.position.x = 500;
 
-		// uniform pour le shader de l'étoile
-		let uniformPlatenete1={
-			time:{
-				value: 0.0
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.0, 0.0, 0.0)
-			}
-		}
-
-		// shader de la planète 1
-		let shaderP1 = new THREE.ShaderMaterial({
-			uniforms: uniformPlatenete1,
-			vertexShader: document.getElementById('vertexShaderPlatenete1').textContent,
-			fragmentShader: document.getElementById('fragmentShaderPlatenete1').textContent
+		let geometryPlaneteLunes = new THREE.SphereBufferGeometry(30, 40, 40);
+		let materielPlaneteLunes = new THREE.ShaderMaterial({
+			uniforms: uniformPlanete,
+			vertexShader: document.getElementById('vertexShaderPlanete').textContent,
+			fragmentShader: document.getElementById('fragmentShaderPlanete').textContent
 		});
-
-		let P1 = new THREE.Mesh(geoP1, shaderP1);
-		groupeP1.add(P1);
+		let planeteLunes = new THREE.Mesh(geometryPlaneteLunes, materielPlaneteLunes);
+		groupeLunes.add(planeteLunes);
 
 		// création des lunes
-		let nbLune = 10;
+		let nbLunes = 10;
 		let distanceLuneAuCentre = 100;
-		let tabLune = new Array(nbLune);
+		let tabLune = new Array(nbLunes);
 		let texture = textureLoader.load("img/eris.jpg");
 		texture.needsUpdate = true;
-		let spaceBetween = 2*Math.PI/nbLune;  // espacement entre les lunes
+		let spaceBetween = 2*Math.PI/nbLunes;  // Espacement entre les lunes
 
 		// création de toute les lunes
-		for (let i = 0 ; i < nbLune ; i++){
-			let espacement = spaceBetween*i;  // position suivante
+		for (let i = 0 ; i < nbLunes ; i++){
+			let espacement = spaceBetween*i;  // Position suivante
 
 			let geoLune = new THREE.SphereBufferGeometry(10, 64, 64);
 			let materialP1 = new THREE.MeshLambertMaterial({map: texture});
@@ -685,57 +579,38 @@
 			luneL1.position.x = Math.sin(espacement) * distanceLuneAuCentre;
 			luneL1.position.z = Math.cos(espacement) * distanceLuneAuCentre;
 
-			let infoLune = new Array(2);
-			infoLune[0] = espacement;
-			infoLune[1] = luneL1;
+			let lune = new Array(2);
+			lune[0] = espacement;
+			lune[1] = luneL1;
 
-			tabLune[i] = infoLune  // ajout du tableau d'info dans le tableau
-			groupeP1.add(luneL1);
+			tabLune[i] = lune
+			groupeLunes.add(luneL1);
 		}
 
-		// ajout du groupe de la planète 1 au groupe de la sphere
-		groupeDyson.add(groupeP1);
+		// Ajout du groupe de la planète aux Lunes au groupe Dyson
+		groupeDyson.add(groupeLunes);
 
-		// création du groupe de la planète 2
+		// Création du groupe de la planète 2
 		let groupeP2 = new THREE.Group();
 		groupeP2.position.x = 800;
 
-		// création de la planète 2
+		// Création de la planète 2
 		let geoP2 = new THREE.SphereBufferGeometry(40, 128, 128);
 		geoP2.computeVertexNormals();
-
-		// uniform de la planete 2
-		let uniformPlanete2= {
-			time:{value: 0},
-			scale:{
-				type:'f',
-				value:1
-			},
-			color:{
-				type:'c',
-				value: new THREE.Color(0.08, 0.08, 0.08)
-			},
-			multiplicateur: {
-				type:'f',
-				value: 600.0
-			}
-		}
-
-		// shader planète 2
 		let materialS2 = new THREE.ShaderMaterial({
 			uniforms: uniformPlanete2,
 			vertexShader: document.getElementById('vertexShader').textContent,
 			fragmentShader: document.getElementById('fragmentShader').textContent
 		});
 
+
 		let P2 = new THREE.Mesh(geoP2, materialS2);
 		groupeP2.add(P2);
 
-
-		// ajout du groupe de la planète 2 au groupe de la sphère
+		// Ajout du groupe de la planète 2 au groupe de la sphère
 		groupeDyson.add(groupeP2);
 
-		// ajout du groupe de la sphere à la scène
+		// Ajout du groupe de la sphere à la scène
 		scene.add(groupeDyson);
 
 		////////////////////////////////////
@@ -792,11 +667,12 @@
 
 		////////////////////////////////////
 		/// GUI
-		////////////////////////////////////
+		///////////////////////////////////
 
-		// options of the gui
+		let gui = new dat.GUI();
 		let options = {
 			camera :{
+				// Positionnement de la camera sur la sphere de Dyson
 				lookAtTheDysonSphere : function(){
 					camera.position.x = groupeDyson.position.x;
 					camera.position.y = 100;
@@ -806,103 +682,72 @@
 					controls.target = groupeDyson.position;
 				},
 
+				// Positionnement de la camera sur le Soleil
 				lookAtTheSun : function(){
 					camera.position.x = 10;
 					camera.position.y = -100;
 					camera.position.z = 800;
 					camera.rotation.set(new THREE.Vector3( 0 ,1, 0 ));
 					camera.lookAt(new THREE.Vector3( 0 ,0, 0 ));
-					controls.target = sun.position;
+					controls.target = soleil.position;
 
 				}
 			}
 		}
 
-		lumiereControl= new function() {
+		// Intensité de base pour la lumière ambiante et du soleil
+		lumiereControle = new function() {
 
-			// donner l'intensité de la lumière rouge de base
 			this.intensiteSoleil = 2;
 			this.intensiteLumiereGeneral=1;
 		}
 
-		// création du GUI
-		let gui = new dat.GUI();
-
-		//ajoute une rubrique lumiere
+		// Gestion de la lumière
 		let lumiere = gui.addFolder('lumiere');
-
-		//ajouter un controle de l'intensité de la lumière du soleil dans le gui
-		lumiere.add(lumiereControl,'intensiteSoleil',0,20).listen();
-
-		//ajouter un controle de l'intensité de la lumière général dans le gui
-		lumiere.add(lumiereControl,'intensiteLumiereGeneral',0,2).listen();
-
-		//avoir la rubrique ouverte par défaut
+		lumiere.add(lumiereControle,'intensiteSoleil',0,20).listen();
+		lumiere.add(lumiereControle,'intensiteLumiereGeneral',0,2).listen();
 		lumiere.open();
 
-		// option pour la camera
+
+		// Gestion du positionnement la camera
 		let optCam = gui.addFolder('Camera');
 		optCam.add(options.camera, 'lookAtTheDysonSphere').name("DysonSphere").listen();
 		optCam.add(options.camera, 'lookAtTheSun').name("Sun").listen();
 		optCam.open();
 
+
+		// Gestion du trou noir
 		let optTrouNoir = gui.addFolder('Trou noir');
 		gui.add(trouNoir, 'rayon', 1, 20);
 		gui.add(trouNoir, 'transparence');
 		optTrouNoir.open()
 
-		//=================================================
-
-
-		//effetDebut
-		const geometryEffetDebut = new THREE.RingGeometry(28, 30, 32);
-		const materialEffetDebut = new THREE.MeshBasicMaterial( {color: 0xffffff} );
-		const effetDebutt = new THREE.Mesh( geometryEffetDebut, materialEffetDebut );
-		effetDebutt.rotateX(-51);
-		scene.add( effetDebutt );
-
-
-		//anneau
-		const geometryAnneau = new THREE.RingGeometry( 28, 30, 32 );
-		const materialAnneau = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
-		materialAnneau.map = textureLoader.load('img/saturnring.png');
-		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
-		anneau.rotateX(360);
-		scene.add( anneau );
-
-		// ajouter background https://discourse.threejs.org/t/background-image-texture-is-not-working/15435
-
-		const loader2 = textureLoader.load('img/stars_milkyway.jpg');
 		animate();
 
 	/////////////////////////////////////////////////
 	/////////////////////////////////////////////////
 	/////////////////////////////////////////////////
 
-
 		function render() {
 			renderer.render(scene, camera);
 
-			planete1.position.x = sun.position.x + Math.cos(vitesseRotationPlanete1Sun/500)* 800;
-			planete1.position.z = sun.position.z + Math.sin(vitesseRotationPlanete1Sun/500)* 800;
-			planete1.position.y = sun.position.y;
+			kepler.position.x = soleil.position.x + Math.cos(vitesseRotationSoleil/500)* 800;
+			kepler.position.z = soleil.position.z + Math.sin(vitesseRotationSoleil/500)* 800;
+			kepler.position.y = soleil.position.y;
 
-			planete2.position.x = sun.position.x - Math.cos(vitesseRotationPlanete1Sun/500)* 450;
-			planete2.position.z = sun.position.z - Math.sin(vitesseRotationPlanete1Sun/500)* 450;
-			planete2.position.y = sun.position.y;
+			planete2.position.x = soleil.position.x - Math.cos(vitesseRotationSoleil/500)* 450;
+			planete2.position.z = soleil.position.z - Math.sin(vitesseRotationSoleil/500)* 450;
+			planete2.position.y = soleil.position.y;
 
-			anneau.position.x = planete1.position.x;
-			anneau.position.y = planete1.position.y;
-			anneau.position.z = planete1.position.z;
+			anneau.position.x = kepler.position.x;
+			anneau.position.y = kepler.position.y;
+			anneau.position.z = kepler.position.z;
 
 			//lumiere du soleil
-			pointLight.intensity=lumiereControl.intensiteSoleil;
+			pointLight.intensity = lumiereControle.intensiteSoleil;
 
 			//lumiere de la scene
-			sceneLight.intensity=lumiereControl.intensiteLumiereGeneral*0.5;
-
-
-			effetDebutt.scale.set(tailleEffetDepartSoleil,tailleEffetDepartSoleil,tailleEffetDepartSoleil) ;
+			sceneLight.intensity = lumiereControle.intensiteLumiereGeneral*0.5;
 
 			const p = new THREE.Vector3();
 			p.set(trouNoirCentre.x, trouNoirCentre.y, trouNoirCentre.z);
@@ -919,10 +764,10 @@
 		}
 
 		function animate(t) {
-			planete1.rotation.set(1,vitesseSelfRotationPlanete1/800,1);
-			vitesseSelfRotationPlanete1=vitesseSelfRotationPlanete1+10;
+			kepler.rotation.set(1,vitesseSelfRotationKepler/800,1);
+			vitesseSelfRotationKepler=vitesseSelfRotationKepler+10;
 
-			vitesseRotationPlanete1Sun = vitesseRotationPlanete1Sun+10;
+			vitesseRotationSoleil = vitesseRotationSoleil+10;
 
 			tailleEffetDepartSoleil = tailleEffetDepartSoleil*1.02;
 
@@ -930,48 +775,41 @@
 			/// GROUPE SPHERE DE DYSON
 			/////////////////////////////
 
-			// rotation des anneaux
+			// Rotation des anneaux
 			anneau1.rotation.set(0, t/800, t/800);
 			anneau2.rotation.set(t/1000, t/1000, 0);
 			anneau3.rotation.set(t/1200, 0, t/1200);
 
-			// envoie du temps dans le shader de la sphere
+			// Envoi du temps dans le shader de la sphere
 			uniformDyson.time.value = t;
 
-			// révolution de la planète avec les lunes
-			groupeP1.position.x = Math.sin(t/2200) * 500;
-			groupeP1.position.z = Math.cos(t/2200) * 500;
+			// Révolution de la planète avec les lunes
+			groupeLunes.position.x = Math.sin(t/2200) * 500;
+			groupeLunes.position.z = Math.cos(t/2200) * 500;
 
-			// révolution des lunes
-			for (let i = 0 ; i < nbLune ; i++){
+			// Révolution des lunes
+			for (let i = 0 ; i < nbLunes ; i++){
 				tabLune[i][1].position.x = -Math.sin(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
 				tabLune[i][1].position.z = Math.cos(tabLune[i][0] + (t/1800)/2*Math.PI) * distanceLuneAuCentre;
 				// rotation des lunes
 				tabLune[i][1].rotation.y = -t/800;
 			}
 
-			// passage du temps dans le shader de la planète 2
+			// Passage du temps dans les shaders
 			uniformPlanete2.time.value = t;
+			uniformsSoleil.time.value = t;
 
-			// révolution de la planète 2
+			// Révolution de la planète 2
 			groupeP2.position.x = Math.sin(t/2700) * 800;
 			groupeP2.position.z = Math.cos(t/2700) * 800;
 
-
 			///////////////////////////////////////////
 			///////////////////////////////////////////
 
-			// envoie du temps dans le shader
-			uniformsLapin.time.value = t;
-			uniformsLapinTexture.time.value = t;
-			uniformsCube.time.value = t;
-
-			// RENDER
 			render();
 			requestAnimationFrame(animate);
 			controls.update();
 		}
-
 
 
 	/////////////////////////////////////////////////
@@ -1001,5 +839,4 @@
 
 	</script>
 </body>
-
 </html>
