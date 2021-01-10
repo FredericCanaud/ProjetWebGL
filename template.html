@@ -551,6 +551,7 @@
 		let groupeLunes = new THREE.Group();
 		groupeLunes.position.x = 500;
 
+		// création de la planète aux lunes
 		let geometryPlaneteLunes = new THREE.SphereBufferGeometry(30, 40, 40);
 		let materielPlaneteLunes = new THREE.ShaderMaterial({
 			uniforms: uniformPlanete,
@@ -611,6 +612,22 @@
 		groupeDyson.add(groupeP2);
 
 
+		// création de la planète de lave
+		let geoP3 = new THREE.SphereBufferGeometry(35, 64, 64);
+		geoP3.computeVertexNormals();
+
+		let textureLave = textureLoader.load("img/lava.png");
+		let materialLave = new THREE.MeshLambertMaterial({map: textureLave, emissive: 0xff0000, emissiveIntensity: 0.25});
+
+		let planeteLave = new THREE.Mesh(geoP3, materialLave);
+		planeteLave.position.x = 250;
+
+		groupeDyson.add(planeteLave);
+
+		// création du groupe du vaisseau
+		let groupeP3 = new THREE.Group();
+
+		// TODO
 
 		// textures du vaisseau
 		let textureVaisseau = textureLoader.load("img/vaultersShip.png");
@@ -827,9 +844,16 @@
 			uniformPlanete2.time.value = t;
 			uniformsSoleil.time.value = t;
 
-			// Révolution de la planète 2
-			groupeP2.position.x = Math.sin(t/2700) * 800;
-			groupeP2.position.z = Math.cos(t/2700) * 800;
+			// Révolution élliptique de la planète 2
+			groupeP2.position.x = (Math.sin(t/2700)/1.4) * 1000;
+			groupeP2.position.z = Math.cos(t/2700) * 1000;
+
+			// Rotation de la planète de lave
+			planeteLave.rotation.set(0, t/800, 0);
+
+			// Révolution planète lave
+			planeteLave.position.x = Math.sin(t/1000) * 250;
+			planeteLave.position.z = Math.cos(t/1000) * 250;
 
 			///////////////////////////////////////////
 			///////////////////////////////////////////
