@@ -564,8 +564,8 @@
 		let nbLunes = 10;
 		let distanceLuneAuCentre = 100;
 		let tabLune = new Array(nbLunes);
-		let texture = textureLoader.load("img/eris.jpg");
-		texture.needsUpdate = true;
+		let textureLune = textureLoader.load("img/eris.jpg");
+		textureLune.needsUpdate = true;
 		let spaceBetween = 2*Math.PI/nbLunes;  // Espacement entre les lunes
 
 		// création de toute les lunes
@@ -573,7 +573,7 @@
 			let espacement = spaceBetween*i;  // Position suivante
 
 			let geoLune = new THREE.SphereBufferGeometry(10, 64, 64);
-			let materialP1 = new THREE.MeshLambertMaterial({map: texture});
+			let materialP1 = new THREE.MeshLambertMaterial({map: textureLune});
 			geoLune.computeVertexNormals();
 			let luneL1 = new THREE.Mesh(geoLune, materialP1);
 			luneL1.position.x = Math.sin(espacement) * distanceLuneAuCentre;
@@ -609,6 +609,34 @@
 
 		// Ajout du groupe de la planète 2 au groupe de la sphère
 		groupeDyson.add(groupeP2);
+
+
+
+		// textures du vaisseau
+		let textureVaisseau = textureLoader.load("img/vaultersShip.png");
+		textureVaisseau.needsUpdate = true;
+
+		// création du vaisseau
+		objLoader.load("obj/vaisseauVaulters.obj", function (objet){
+
+			objet.traverse( function( child ) {
+				if ( child.isMesh) {
+					child.geometry.computeVertexNormals();
+					child.material.map = textureVaisseau;
+				}
+			});
+
+			objet.position.set(300,0,0);
+			objet.rotation.set(300, 0, 0);
+
+			objet.scale.set(1,1,1);
+
+			// ajout du vaisseau au groupe de la sphere
+			groupeDyson.add(objet);
+		});
+
+
+
 
 		// Ajout du groupe de la sphere à la scène
 		scene.add(groupeDyson);
@@ -731,12 +759,12 @@
 		function render() {
 			renderer.render(scene, camera);
 
-			kepler.position.x = soleil.position.x + Math.cos(vitesseRotationSoleil/500)* 800;
-			kepler.position.z = soleil.position.z + Math.sin(vitesseRotationSoleil/500)* 800;
+			kepler.position.x = soleil.position.x + Math.cos(vitesseRotationSoleil/900)* 800;
+			kepler.position.z = soleil.position.z + Math.sin(vitesseRotationSoleil/900)* 800;
 			kepler.position.y = soleil.position.y;
 
-			planete2.position.x = soleil.position.x - Math.cos(vitesseRotationSoleil/500)* 450;
-			planete2.position.z = soleil.position.z - Math.sin(vitesseRotationSoleil/500)* 450;
+			planete2.position.x = soleil.position.x - Math.cos(vitesseRotationSoleil/900)* 450;
+			planete2.position.z = soleil.position.z - Math.sin(vitesseRotationSoleil/900)* 450;
 			planete2.position.y = soleil.position.y;
 
 			anneau.position.x = kepler.position.x;
