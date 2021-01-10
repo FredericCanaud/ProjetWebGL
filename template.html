@@ -6,25 +6,17 @@
 	<title>WebGL 2020 - L3 - FST - UNILIM</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-<!-- <script type="text/javascript" src="http://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=JagMHoP5s5rM8MDRnmB7BaPFViGHpw_EUTtHQUW8TIlqPYQneP84Ew-wuwEAmk0I9K9Zce7q3oH7Zt4KNc56y6-YJ2QyL1xsuU5H7Vjlj-FOzxRsiTT8MYRbTtuKBrwVk6xQcTNaxQE7guHy_0zkxsEW6L7RXLdPX83llPHeKgc" charset="UTF-8"></script><link rel="stylesheet" crossorigin="anonymous" href="http://ff.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL3d3dy51bmlsaW0uZnIvcGFnZXNfcGVyc28vZ3VpbGxhdW1lLmdpbGV0L0Vuc2VpZ25lbWVudC9JbmZvR3JhcGhpcXVlL1dlYkdML1RQL3RlbXBsYXRlLmh0bWw"/></head>
--->
+</head>
 
 <body>
 	<script src="three.js"></script>
 	<script src="dat.gui.min.js"></script>
-
-	<script id="fonctions">
-		// écrire fonction ici
-	</script>
-
-
 
 <!--
 //////////////////////////////////////////////////////
 ///////////////////  SHADER PART  ////////////////////
 //////////////////////////////////////////////////////
 -->
-
 
 	<script type="x-shader/x-vertex" id="vertexShader">
 		uniform float multiplicateur; //hauteur du déplacement
@@ -97,7 +89,6 @@
 			gl_Position = projectionMatrix * modelViewPosition;
 		}
 	</script>
-
 
 	<script type="x-shader/x-fragment" id="fragmentShader">
 		uniform float time; // le temps
@@ -275,7 +266,46 @@
 		}
 	</script>
 
+	<script type="x-shader/x-vertex" id="vertexShaderTrouNoir">
+		varying vec2 vUv;
 
+		void main() {
+
+			vUv = uv;
+			gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+
+		}
+	</script>
+
+	<script type="x-shader/x-fragment" id="fragmentShaderTrouNoir">
+		uniform sampler2D tDiffuse;
+		uniform float _DistanceCamera;
+		uniform vec2 _Position; // Position du trou noir
+		uniform float _Rayon;
+		uniform float _Ratio; // Définit un multiplicateur pour calculer le rayon
+		uniform int _Transparence; // Si le trou noir laisse passer l'arrière plan
+
+		varying vec2 vUv;
+
+		void main() {
+
+			vec2 decalage = vUv - _Position;
+			float rayon = length(decalage / vec2(_Ratio, 1));
+			float deformation = 1.0 / pow(rayon * pow(_DistanceCamera,0.5), 2.0) * _Rayon ;
+
+			decalage = decalage * (1.0-deformation) + _Position;
+			vec4 color = texture2D(tDiffuse, decalage);
+
+			// Si le trou noir est transparent, on calcule la déformation de l'arrière-plan
+			// Sinon, le trou noir est noir, ou possède la texture passée en paramètre
+			if (_Transparence == 1 && deformation > 1.0) {
+				vec4 black = vec4(0,0,0,1);
+				float f = max(0.0, min((deformation) * 20.0, 1.0));
+				color = mix(color, black, f);
+			}
+			gl_FragColor = color;
+		}
+	</script>
 <!--
 //////////////////////////////////////////////////////
 //////////////// SHADER PART OVER ////////////////////
@@ -284,10 +314,11 @@
 
 
 	<script type="module">
-		//import * as THREE from 'https://unpkg.com/three@0.121.1/build/three.module.js';
 		import { OrbitControls } from 'https://unpkg.com/three@0.121.1/examples/jsm/controls/OrbitControls.js';
 		import { OBJLoader } from 'https://unpkg.com/three@0.121.1/examples/jsm/loaders/OBJLoader.js';
-
+		import { EffectComposer } from 'https://unpkg.com/three@0.121.1/examples/jsm/postprocessing/EffectComposer.js';
+		import { RenderPass } from 'https://unpkg.com/three@0.121.1/examples/jsm/postprocessing/RenderPass.js';
+		import { ShaderPass } from 'https://unpkg.com/three@0.121.1/examples/jsm/postprocessing/ShaderPass.js';
 
 		// constant
 		const width = window.innerWidth;
@@ -302,7 +333,7 @@
 		let vertexDisplacement;
 
 		//tailleEffet
-		var tailleEffetDepartSoleil = 1;
+		let tailleEffetDepartSoleil = 1;
 
 		//compteur vitesse selfRotation
 		let vitesseSelfRotationPlanete1 = 0;
@@ -311,7 +342,7 @@
 		let vitesseRotationPlanete1Sun = 0;
 
 		//gui
-		var lumiereControl;
+		let lumiereControl;
 
 		//planete
 		let sun;
@@ -364,6 +395,8 @@
 		sceneLight.position.set(10,-100,800);
 		scene.add(sceneLight);
 
+		let objLoader = new OBJLoader();
+		let textureLoader = new THREE.TextureLoader();
 
 		let uniformsLapin = {
 			delta:{value: 0},
@@ -407,7 +440,7 @@
 			},
 			texture1: {
 				type: "t",
-				value: new THREE.TextureLoader().load( "./soleil.jpg" )
+				value: textureLoader.load( "img/soleil.jpg" )
 			},
 			color:{
 				type:'c',
@@ -419,6 +452,16 @@
 			}
 		}
 
+		let uniformsTrouNoir = {
+
+			tDiffuse:      { type: 'f', value: null },
+			_Ratio:        { type: 'f', value: 0.0 },
+			_Rayon:        { type: 'f', value: 10.0 },
+			_Off:          { type: 'f', value: 1.0 },
+			_DistanceCamera:     { type: 'f', value: 0.0 },
+			_Position:     { type: 'f', value: null },
+			_Transparence: { type: 'f', value: 0.0 }
+		}
 
 		///////////////////////////
 		///////////////////////////
@@ -429,9 +472,6 @@
 			vertexShader: document.getElementById('vertexShader').textContent,
 			fragmentShader: document.getElementById('fragmentShader').textContent
 		});
-
-		let loader = new OBJLoader();
-
 
 		///////////////////////////
 		///////////////////////////
@@ -454,7 +494,7 @@
 		// sun
 		let geometrySun = new THREE.SphereGeometry(80,32,32);
 		let materialSun = new THREE.MeshPhongMaterial();
-		materialSun.map=THREE.ImageUtils.loadTexture('soleil.jpg');
+		materialSun.map = textureLoader.load('img/soleil.jpg');
 		sun = new THREE.Mesh(geometrySun, materialSun);
 
 		scene.add(sun);
@@ -464,7 +504,7 @@
 		let geometryBoulleUnivers = new THREE.SphereGeometry(5000,32,32);
 		let materialBoulleUnivers = new THREE.MeshPhongMaterial();
 		materialBoulleUnivers.side = THREE.DoubleSide;
-		materialBoulleUnivers.map=THREE.ImageUtils.loadTexture('stars_milkyway.jpg');
+		materialBoulleUnivers.map = textureLoader.load('img/stars_milkyway.jpg');
 		let boulleUnivers = new THREE.Mesh(geometryBoulleUnivers,materialBoulleUnivers);
 		boulleUnivers.position.set(0,0,0);
 
@@ -472,10 +512,10 @@
 
 		//contour univers
 
-		var geometryPlanete1 = new THREE.SphereGeometry(20,32,32);
-		var materialPlanete1 = new THREE.MeshPhongMaterial();
-		materialPlanete1.map=THREE.ImageUtils.loadTexture('makemake.jpg');
-		var planete1 = new THREE.Mesh(geometryPlanete1,materialPlanete1);
+		const geometryPlanete1 = new THREE.SphereGeometry(20, 32, 32);
+		const materialPlanete1 = new THREE.MeshPhongMaterial();
+		materialPlanete1.map = textureLoader.load('img/makemake.jpg');
+		const planete1 = new THREE.Mesh(geometryPlanete1, materialPlanete1);
 		planete1.position.set(800,0,0);
 
 		scene.add(planete1);
@@ -487,7 +527,7 @@
 		let effetSoleilGeometry = new THREE.SphereGeometry(80, 24, 24);
 		let effetSoleil = new THREE.Mesh(effetSoleilGeometry, effetSoleilMaterial);
 
-		loader.load("sphere.obj", function(effetSoleil){
+		objLoader.load("sphere.obj", function(effetSoleil){
 
 			effetSoleil.traverse( function( child ) {
 				if ( child.isMesh ) {
@@ -513,7 +553,7 @@
 
 		let geometryPlanete2 = new THREE.SphereGeometry(100,32,32);
 		let materialPlanete2 = new THREE.MeshPhongMaterial();
-		materialPlanete2.map=THREE.ImageUtils.loadTexture('mars.jpg');
+		materialPlanete2.map = textureLoader.load('img/mars.jpg');
 		let planete2 = new THREE.Mesh(geometryPlanete2,materialPlanete2);
 		planete2.position.set(-200,0,0);
 
@@ -522,12 +562,10 @@
 
 		//deathStar
 
-		loader.load( "ds.obj", function (objet){
-			let material = new THREE.ShaderMaterial( {}  );
-
-			objet.material = material;
+		objLoader.load( "ds.obj", function (objet){
+			objet.material = new THREE.ShaderMaterial({});
 			objet.traverse( function( child ) {
-				let texture = new THREE.TextureLoader().load( "ds.jpg"  );
+				let texture = textureLoader.load('img/ds.jpg');
 
 				if ( child.isMesh ) child.geometry.computeVertexNormals();
 				child.material.map=texture;
@@ -632,7 +670,7 @@
 		let nbLune = 10;
 		let distanceLuneAuCentre = 100;
 		let tabLune = new Array(nbLune);
-		let texture = new THREE.TextureLoader().load("eris.jpg");
+		let texture = textureLoader.load("img/eris.jpg");
 		texture.needsUpdate = true;
 		let spaceBetween = 2*Math.PI/nbLune;  // espacement entre les lunes
 
@@ -704,6 +742,52 @@
 		// FIN GROUPE DE LA SPHERE DE DYSON
 		////////////////////////////////////
 
+		//=====================================================================================================
+
+		////////////////////////////////////
+		// TROU NOIR
+		////////////////////////////////////
+
+		const composer = new EffectComposer(renderer);
+		const renderPass = new RenderPass(scene, camera);
+		composer.addPass(renderPass);
+
+		// Constructeur d'avoir un objet de type TrouNoir, avec des attributs
+		const TrouNoir = function () {
+			this.rayon = 10;
+			this.decalage = 1.0;
+			this.k = 1.4;
+			this.transparence = true;
+		};
+
+		const trouNoir = new TrouNoir();
+
+		// Cyclone autour du trou noir
+		const geometryCyclone = new THREE.CylinderGeometry(150, 150, 0.01, 32);
+		const textureCyclone = new THREE.TextureLoader().load('img/cyclone.jpg');
+		const materialCyclone = new THREE.MeshBasicMaterial({map: textureCyclone});
+		const cyclone = new THREE.Mesh(geometryCyclone, materialCyclone);
+		scene.add(cyclone);
+		cyclone.position.set(500, 0, 0);
+
+		// Déclaration du shader, calculé en post-processing
+		const trouNoirShader = new ShaderPass({
+			uniforms: uniformsTrouNoir,
+			vertexShader: document.getElementById('vertexShaderTrouNoir').textContent,
+			fragmentShader: document.getElementById('fragmentShaderTrouNoir').textContent
+		});
+
+		// Position du trou noir dans l'espace
+		const trouNoirCentre = new THREE.Vector3(500, 0, 0);
+
+		// Position du trou noir à l'écran
+		const trouNoirPosition = new THREE.Vector2(0, 0);
+		const trouNoirRatio = window.innerHeight / window.innerWidth;
+		trouNoirShader.uniforms['_Ratio'].value = trouNoirRatio;
+		let trouNoirDistanceCamera = 0;
+
+		composer.addPass(trouNoirShader);
+
 		//=========================================================================================================
 
 		////////////////////////////////////
@@ -762,14 +846,18 @@
 		optCam.add(options.camera, 'lookAtTheSun').name("Sun").listen();
 		optCam.open();
 
+		let optTrouNoir = gui.addFolder('Trou noir');
+		gui.add(trouNoir, 'rayon', 1, 20);
+		gui.add(trouNoir, 'transparence');
+		optTrouNoir.open()
 
 		//=================================================
 
 
 		//effetDebut
-		const geometryEffetDebutt = new THREE.RingGeometry(28, 30, 32);
-		const materialEffetDebutt = new THREE.MeshBasicMaterial( {color: 0xffffff} );
-		const effetDebutt = new THREE.Mesh( geometryEffetDebutt, materialEffetDebutt );
+		const geometryEffetDebut = new THREE.RingGeometry(28, 30, 32);
+		const materialEffetDebut = new THREE.MeshBasicMaterial( {color: 0xffffff} );
+		const effetDebutt = new THREE.Mesh( geometryEffetDebut, materialEffetDebut );
 		effetDebutt.rotateX(-51);
 		scene.add( effetDebutt );
 
@@ -777,15 +865,14 @@
 		//anneau
 		const geometryAnneau = new THREE.RingGeometry( 28, 30, 32 );
 		const materialAnneau = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide } );
-		materialAnneau.map=THREE.ImageUtils.loadTexture('saturnring.png');
+		materialAnneau.map = textureLoader.load('img/saturnring.png');
 		const anneau = new THREE.Mesh( geometryAnneau, materialAnneau );
 		anneau.rotateX(360);
 		scene.add( anneau );
 
 		// ajouter background https://discourse.threejs.org/t/background-image-texture-is-not-working/15435
 
-		const loader2 = new THREE.TextureLoader();
-		scene.background = loader2.load( 'stars_milkyway.jpg' );
+		const loader2 = textureLoader.load('img/stars_milkyway.jpg');
 		animate();
 
 	/////////////////////////////////////////////////
@@ -816,11 +903,24 @@
 
 
 			effetDebutt.scale.set(tailleEffetDepartSoleil,tailleEffetDepartSoleil,tailleEffetDepartSoleil) ;
+
+			const p = new THREE.Vector3();
+			p.set(trouNoirCentre.x, trouNoirCentre.y, trouNoirCentre.z);
+			p.project(camera);
+			trouNoirPosition.set((1 + p.x)*0.5, (1 + p.y)*0.5);
+
+			trouNoirDistanceCamera = camera.position.distanceTo(trouNoirCentre);
+			trouNoirShader.uniforms['_DistanceCamera'].value = trouNoirDistanceCamera;
+			trouNoirShader.uniforms['_Position'].value = trouNoirPosition;
+			trouNoirShader.uniforms['_Rayon'].value = trouNoir.rayon;
+			trouNoirShader.uniforms['_Transparence'].value = trouNoir.transparence ? 1 : 0;
+			cyclone.rotation.y += 0.05;
+			composer.render();
 		}
 
 		function animate(t) {
 			planete1.rotation.set(1,vitesseSelfRotationPlanete1/800,1);
-			vitesseSelfRotationPlanete1=vitesseSelfRotationPlanete1+10*1;
+			vitesseSelfRotationPlanete1=vitesseSelfRotationPlanete1+10;
 
 			vitesseRotationPlanete1Sun = vitesseRotationPlanete1Sun+10;
 
@@ -898,7 +998,6 @@
 		function print(message) {
 			console.log(message);
 		}
-
 
 	</script>
 </body>
